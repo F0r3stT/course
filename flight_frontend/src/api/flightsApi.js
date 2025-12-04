@@ -1,6 +1,16 @@
+// src/api/flightsApi.js
 const API_BASE = "http://localhost:8080";
 
-// Получить список рейсов
+// Читаем токен из localStorage — тот же ключ, который ставит AuthContext
+function getAuthHeaders() {
+  const token = localStorage.getItem("authToken");
+  if (!token) return {};
+  return {
+    Authorization: `Bearer ${token}`,
+  };
+}
+
+// Получить список рейсов (публично)
 export async function fetchFlights() {
   const res = await fetch(`${API_BASE}/api/flights`);
   if (!res.ok) {
@@ -10,8 +20,7 @@ export async function fetchFlights() {
   return res.json();
 }
 
-
-// Создать новый рейс
+// Создать новый рейс (нужна авторизация)
 export async function createFlight(form) {
   const {
     flightNumber,
@@ -22,7 +31,6 @@ export async function createFlight(form) {
     status,
   } = form;
 
-  // Простая проверка
   if (
     !flightNumber ||
     !departureAirport ||
@@ -56,7 +64,10 @@ export async function createFlight(form) {
 
   const res = await fetch(`${API_BASE}/api/flights`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
     body: JSON.stringify(payload),
   });
 
@@ -65,19 +76,21 @@ export async function createFlight(form) {
     throw new Error(`Ошибка создания рейса (HTTP ${res.status}): ${text}`);
   }
 
-  return res.json(); // возвращаем созданный рейс
+  return res.json();
 }
 
-
-// Обновить только статус рейса
+// Обновить только статус рейса (PATCH /api/flights/:id/status)
 export async function updateFlightStatus(id, newStatus) {
   if (!newStatus) {
     throw new Error("Статус не может быть пустым");
   }
 
-  const res = await fetch(`http://localhost:8080/api/flights/${id}/status`, {
+  const res = await fetch(`${API_BASE}/api/flights/${id}/status`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
     body: JSON.stringify({ status: newStatus }),
   });
 
@@ -86,16 +99,20 @@ export async function updateFlightStatus(id, newStatus) {
     throw new Error(`Ошибка обновления статуса (HTTP ${res.status}): ${text}`);
   }
 
-  return res.json(); // обновлённый рейс
+  return res.json();
 }
 
+// Удалить рейс (DELETE /api/flights/:id)
 export async function deleteFlight(id) {
-  const res = await fetch(`http://localhost:8080/api/flights/${id}`, {
+  const res = await fetch(`${API_BASE}/api/flights/${id}`, {
     method: "DELETE",
+    headers: {
+      ...getAuthHeaders(),
+    },
   });
 
   if (res.status === 204) {
-    return; 
+    return;
   }
 
   if (res.status === 404) {
@@ -105,6 +122,7 @@ export async function deleteFlight(id) {
   const text = await res.text();
   throw new Error(`Ошибка удаления рейса (HTTP ${res.status}): ${text}`);
 }
+
 // Обновить рейс целиком (PUT /api/flights/:id)
 export async function updateFlight(id, form) {
   const {
@@ -147,9 +165,12 @@ export async function updateFlight(id, form) {
     status,
   };
 
-  const res = await fetch(`http://localhost:8080/api/flights/${id}`, {
+  const res = await fetch(`${API_BASE}/api/flights/${id}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
     body: JSON.stringify(payload),
   });
 
@@ -158,5 +179,5 @@ export async function updateFlight(id, form) {
     throw new Error(`Ошибка обновления рейса (HTTP ${res.status}): ${text}`);
   }
 
-  return res.json(); // обновлённый рейс
+  return res.json();
 }

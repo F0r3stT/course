@@ -131,7 +131,7 @@ function FlightForm({
 
       <div>
         <label>
-          Аэропорт вылета (IATA, 3 буквы):
+          Аэропорт вылета:
           <br />
           <input
             type="text"
@@ -145,7 +145,7 @@ function FlightForm({
 
       <div>
         <label>
-          Аэропорт прилёта (IATA, 3 буквы):
+          Аэропорт прилёта:
           <br />
           <input
             type="text"
