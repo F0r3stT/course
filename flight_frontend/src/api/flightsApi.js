@@ -10,6 +10,7 @@ export async function fetchFlights() {
   return res.json();
 }
 
+
 // Создать новый рейс
 export async function createFlight(form) {
   const {

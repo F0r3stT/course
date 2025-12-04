@@ -9,6 +9,7 @@ import (
 	"flight_backend/internal/auth"
 	"flight_backend/internal/db"
 	"flight_backend/internal/flights"
+	"flight_backend/internal/middleware"
 	"flight_backend/internal/users"
 
 	"github.com/gin-contrib/cors"
@@ -42,15 +43,30 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"message": "pong"})
 	})
 
-	// ====== AUTH ======
+	// AUTH
 	usersRepo := users.NewPGRepository(pool)
 	authHandler := auth.NewHandler(usersRepo)
 	authHandler.RegisterRoutes(r)
-	// ===================
 
-	// Рейсы
+	// FLIGHTS
 	flightsHandler := flights.NewHandler(pool)
-	flightsHandler.RegisterRoutes(r)
+
+	// Публичный просмотр
+	r.GET("/api/flights", flightsHandler.GetFlights)
+
+	// Авторизованные операции
+	authRequired := r.Group("/", middleware.AuthRequired())
+	{
+		authRequired.POST("/api/flights", flightsHandler.CreateFlight)
+		authRequired.PUT("/api/flights/:id", flightsHandler.UpdateFlight)
+		authRequired.PATCH("/api/flights/:id/status", flightsHandler.UpdateFlightStatus)
+	}
+
+	// Только admin может удалять рейсы
+	adminOnly := r.Group("/", middleware.AuthRequired(), middleware.AdminOnly())
+	{
+		adminOnly.DELETE("/api/flights/:id", flightsHandler.DeleteFlight)
+	}
 
 	if err := r.Run(":8080"); err != nil {
 		log.Fatalf("failed to run server: %v", err)
