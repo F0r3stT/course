@@ -1,9 +1,15 @@
-import { useState } from "react";
-import { createFlight } from "../api/flightsApi";
+import { useEffect, useState } from "react";
+import { createFlight } from "../../api/flightsApi";
+// если updateFlight лежит в том же файле api:
+import { updateFlight } from "../../api/flightsApi";
 
-// props:
-// - onFlightCreated(newFlight) — колбэк, вызывается при успешном создании
-function FlightForm({ onFlightCreated }) {
+function FlightForm({
+  mode = "create",
+  initialFlight = null,
+  onFlightCreated,
+  onFlightUpdated,
+  onCancel,
+}) {
   const [form, setForm] = useState({
     flightNumber: "",
     departureAirport: "",
@@ -14,6 +20,35 @@ function FlightForm({ onFlightCreated }) {
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+
+  // при переходе в режим редактирования заполняем форму
+  useEffect(() => {
+    if (mode === "edit" && initialFlight) {
+      setForm({
+        flightNumber: initialFlight.flight_number,
+        departureAirport: initialFlight.departure_airport,
+        arrivalAirport: initialFlight.arrival_airport,
+        // превращаем ISO-строку в формат для input[type=datetime-local]
+        departureTime: initialFlight.departure_time
+          ? new Date(initialFlight.departure_time).toISOString().slice(0, 16)
+          : "",
+        arrivalTime: initialFlight.arrival_time
+          ? new Date(initialFlight.arrival_time).toISOString().slice(0, 16)
+          : "",
+        status: initialFlight.status,
+      });
+    }
+    if (mode === "create") {
+      setForm({
+        flightNumber: "",
+        departureAirport: "",
+        arrivalAirport: "",
+        departureTime: "",
+        arrivalTime: "",
+        status: "",
+      });
+    }
+  }, [mode, initialFlight]);
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -26,27 +61,32 @@ function FlightForm({ onFlightCreated }) {
     setSubmitting(true);
 
     try {
-      const newFlight = await createFlight(form);
-      // уведомляем родителя
-      if (onFlightCreated) {
-        onFlightCreated(newFlight);
+      if (mode === "create") {
+        const newFlight = await createFlight(form);
+        onFlightCreated && onFlightCreated(newFlight);
+        // сброс после создания
+        setForm({
+          flightNumber: "",
+          departureAirport: "",
+          arrivalAirport: "",
+          departureTime: "",
+          arrivalTime: "",
+          status: "",
+        });
+      } else if (mode === "edit" && initialFlight) {
+        const updatedFlight = await updateFlight(initialFlight.id, form);
+        onFlightUpdated && onFlightUpdated(updatedFlight);
       }
-      // сбрасываем форму
-      setForm({
-        flightNumber: "",
-        departureAirport: "",
-        arrivalAirport: "",
-        departureTime: "",
-        arrivalTime: "",
-        status: "",
-      });
     } catch (err) {
-      console.error("Create flight error:", err);
+      console.error("Flight form submit error:", err);
       setError(err.message);
     } finally {
       setSubmitting(false);
     }
   }
+
+  const submitLabel =
+    mode === "create" ? "Создать рейс" : "Сохранить изменения";
 
   return (
     <form
@@ -145,8 +185,18 @@ function FlightForm({ onFlightCreated }) {
 
       <div style={{ gridColumn: "1 / -1" }}>
         <button type="submit" disabled={submitting}>
-          {submitting ? "Создание..." : "Создать рейс"}
+          {submitting ? "Сохранение..." : submitLabel}
         </button>
+        {mode === "edit" && onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            style={{ marginLeft: 12 }}
+            disabled={submitting}
+          >
+            Отмена
+          </button>
+        )}
         {error && (
           <span style={{ color: "red", marginLeft: 16 }}>Ошибка: {error}</span>
         )}

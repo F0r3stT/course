@@ -6,11 +6,13 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
-
+	"flight_backend/internal/auth"
 	"flight_backend/internal/db"
 	"flight_backend/internal/flights"
+	"flight_backend/internal/users"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -39,6 +41,12 @@ func main() {
 	r.GET("/api/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "pong"})
 	})
+
+	// ====== AUTH ======
+	usersRepo := users.NewPGRepository(pool)
+	authHandler := auth.NewHandler(usersRepo)
+	authHandler.RegisterRoutes(r)
+	// ===================
 
 	// Рейсы
 	flightsHandler := flights.NewHandler(pool)

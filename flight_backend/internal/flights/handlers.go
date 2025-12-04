@@ -4,48 +4,11 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
-
-// Flight — модель рейса для ответов.
-type Flight struct {
-	ID               int       `json:"id"`
-	FlightNumber     string    `json:"flight_number"`
-	DepartureAirport string    `json:"departure_airport"`
-	ArrivalAirport   string    `json:"arrival_airport"`
-	DepartureTime    time.Time `json:"departure_time"`
-	ArrivalTime      time.Time `json:"arrival_time"`
-	Status           string    `json:"status"`
-}
-
-// UpdateStatusRequest — входные данные для частичного обновления статуса рейса.
-type UpdateStatusRequest struct {
-	Status string `json:"status"`
-}
-
-// CreateFlightRequest — входные данные для создания рейса.
-type CreateFlightRequest struct {
-	FlightNumber     string `json:"flight_number"`
-	DepartureAirport string `json:"departure_airport"`
-	ArrivalAirport   string `json:"arrival_airport"`
-	DepartureTime    string `json:"departure_time"` // ISO строка, например "2025-12-04T10:00:00Z"
-	ArrivalTime      string `json:"arrival_time"`
-	Status           string `json:"status"`
-}
-
-// UpdateFlightRequest — входные данные для обновления рейса (пока полное обновление).
-type UpdateFlightRequest struct {
-	FlightNumber     string `json:"flight_number"`
-	DepartureAirport string `json:"departure_airport"`
-	ArrivalAirport   string `json:"arrival_airport"`
-	DepartureTime    string `json:"departure_time"`
-	ArrivalTime      string `json:"arrival_time"`
-	Status           string `json:"status"`
-}
 
 // Handler инкапсулирует доступ к БД для рейсов.
 type Handler struct {
@@ -127,12 +90,14 @@ func (h *Handler) CreateFlight(c *gin.Context) {
 		return
 	}
 
-	if !validateFlightInput(req.FlightNumber, req.DepartureAirport, req.ArrivalAirport, req.Status, req.DepartureTime, req.ArrivalTime) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input data"})
-		return
-	}
-
-	depTime, arrTime, err := parseTimes(req.DepartureTime, req.ArrivalTime)
+	depTime, arrTime, err := validateFlightInput(
+		req.FlightNumber,
+		req.DepartureAirport,
+		req.ArrivalAirport,
+		req.Status,
+		req.DepartureTime,
+		req.ArrivalTime,
+	)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -175,7 +140,7 @@ func (h *Handler) CreateFlight(c *gin.Context) {
 	c.JSON(http.StatusCreated, newFlight)
 }
 
-// PUT/PATCH /api/flights/:id — обновление рейса (полное).
+// PUT /api/flights/:id — полное обновление рейса.
 func (h *Handler) UpdateFlight(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
@@ -190,12 +155,14 @@ func (h *Handler) UpdateFlight(c *gin.Context) {
 		return
 	}
 
-	if !validateFlightInput(req.FlightNumber, req.DepartureAirport, req.ArrivalAirport, req.Status, req.DepartureTime, req.ArrivalTime) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input data"})
-		return
-	}
-
-	depTime, arrTime, err := parseTimes(req.DepartureTime, req.ArrivalTime)
+	depTime, arrTime, err := validateFlightInput(
+		req.FlightNumber,
+		req.DepartureAirport,
+		req.ArrivalAirport,
+		req.Status,
+		req.DepartureTime,
+		req.ArrivalTime,
+	)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -266,6 +233,10 @@ func (h *Handler) UpdateFlightStatus(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "status is required"})
 		return
 	}
+	if _, ok := allowedStatuses[req.Status]; !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "недопустимый статус"})
+		return
+	}
 
 	ctx := c.Request.Context()
 
@@ -323,30 +294,5 @@ func (h *Handler) DeleteFlight(c *gin.Context) {
 		return
 	}
 
-	// Успешное удаление, без тела
 	c.Status(http.StatusNoContent) // 204
-}
-
-// validateFlightInput — простая валидация входных данных.
-func validateFlightInput(flightNumber, depAirport, arrAirport, status, depTime, arrTime string) bool {
-	if flightNumber == "" || status == "" || depTime == "" || arrTime == "" {
-		return false
-	}
-	if len(depAirport) != 3 || len(arrAirport) != 3 {
-		return false
-	}
-	return true
-}
-
-// parseTimes — парсинг времени вылета/прилёта из строк в RFC3339.
-func parseTimes(depStr, arrStr string) (time.Time, time.Time, error) {
-	depTime, err := time.Parse(time.RFC3339, depStr)
-	if err != nil {
-		return time.Time{}, time.Time{}, err
-	}
-	arrTime, err := time.Parse(time.RFC3339, arrStr)
-	if err != nil {
-		return time.Time{}, time.Time{}, err
-	}
-	return depTime, arrTime, nil
 }

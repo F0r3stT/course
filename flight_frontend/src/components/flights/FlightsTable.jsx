@@ -1,4 +1,4 @@
-function FlightsTable({ flights, onChangeStatus, onDelete }) {
+function FlightsTable({ flights, onChangeStatus, onDelete, onEdit }) {
   if (!flights || flights.length === 0) {
     return <p>Рейсов нет.</p>;
   }
@@ -7,7 +7,7 @@ function FlightsTable({ flights, onChangeStatus, onDelete }) {
     <table border="1" cellPadding="8" cellSpacing="0" style={{ width: "100%" }}>
       <thead>
         <tr>
-          <th>№</th> {/* порядковый номер, а не ID */}
+          <th>№</th>
           <th>Номер рейса</th>
           <th>Из</th>
           <th>В</th>
@@ -20,7 +20,6 @@ function FlightsTable({ flights, onChangeStatus, onDelete }) {
       <tbody>
         {flights.map((f, index) => (
           <tr key={f.id}>
-            {/* порядковый номер в таблице */}
             <td>{index + 1}</td>
             <td>{f.flight_number}</td>
             <td>{f.departure_airport}</td>
@@ -36,10 +35,18 @@ function FlightsTable({ flights, onChangeStatus, onDelete }) {
                 Задержан
               </button>
               <button
-                onClick={() => onChangeStatus && onChangeStatus(f.id, "boarding")}
+                onClick={() =>
+                  onChangeStatus && onChangeStatus(f.id, "boarding")
+                }
                 style={{ marginRight: 8 }}
               >
                 Посадка
+              </button>
+              <button
+                onClick={() => onEdit && onEdit(f)}
+                style={{ marginRight: 8 }}
+              >
+                Редактировать
               </button>
               <button
                 onClick={() => onDelete && onDelete(f.id)}

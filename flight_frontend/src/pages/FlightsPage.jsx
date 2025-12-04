@@ -4,19 +4,20 @@ import {
   updateFlightStatus,
   deleteFlight,
 } from "../api/flightsApi";
-import FlightForm from "../components/FlightForm";
-import FlightsTable from "../components/FlightsTable";
-
+import FlightForm from "../components/flights/FlightForm";
+import FlightsTable from "../components/flights/FlightsTable";
 function FlightsPage() {
   const [flights, setFlights] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [statusError, setStatusError] = useState(null);
 
+  const [formMode, setFormMode] = useState("create"); // "create" | "edit"
+  const [editingFlight, setEditingFlight] = useState(null);
+
   useEffect(() => {
     fetchFlights()
       .then((data) => {
-        console.log("FLIGHTS from backend:", data);
         setFlights(data);
         setLoading(false);
       })
@@ -29,6 +30,24 @@ function FlightsPage() {
 
   function handleFlightCreated(newFlight) {
     setFlights((prev) => [...prev, newFlight]);
+  }
+
+  function handleEditClick(flight) {
+    setEditingFlight(flight);
+    setFormMode("edit");
+  }
+
+  function handleFlightUpdated(updatedFlight) {
+    setFlights((prev) =>
+      prev.map((f) => (f.id === updatedFlight.id ? updatedFlight : f))
+    );
+    setEditingFlight(null);
+    setFormMode("create");
+  }
+
+  function handleCancelEdit() {
+    setEditingFlight(null);
+    setFormMode("create");
   }
 
   async function handleStatusChange(id, newStatus) {
@@ -49,6 +68,11 @@ function FlightsPage() {
     try {
       await deleteFlight(id);
       setFlights((prev) => prev.filter((f) => f.id !== id));
+      // если удалили рейс, который редактировали — сбросить режим
+      if (editingFlight && editingFlight.id === id) {
+        setEditingFlight(null);
+        setFormMode("create");
+      }
     } catch (err) {
       console.error("Error deleting flight:", err);
       setStatusError(err.message);
@@ -68,12 +92,21 @@ function FlightsPage() {
     );
   }
 
+  const formTitle =
+    formMode === "create" ? "Создать новый рейс" : "Редактировать рейс";
+
   return (
     <div style={{ padding: 20, maxWidth: 900, margin: "0 auto" }}>
       <h1>Рейсы авиакомпании</h1>
 
-      <h2>Создать новый рейс</h2>
-      <FlightForm onFlightCreated={handleFlightCreated} />
+      <h2>{formTitle}</h2>
+      <FlightForm
+        mode={formMode}
+        initialFlight={editingFlight}
+        onFlightCreated={handleFlightCreated}
+        onFlightUpdated={handleFlightUpdated}
+        onCancel={handleCancelEdit}
+      />
 
       <h2>Список рейсов</h2>
       {statusError && (
@@ -85,6 +118,7 @@ function FlightsPage() {
         flights={flights}
         onChangeStatus={handleStatusChange}
         onDelete={handleDelete}
+        onEdit={handleEditClick}
       />
     </div>
   );
