@@ -24,6 +24,7 @@ export async function fetchFlights() {
 export async function createFlight(form) {
   const {
     flightNumber,
+    airlineCode,
     departureAirport,
     arrivalAirport,
     departureTime,
@@ -31,8 +32,10 @@ export async function createFlight(form) {
     status,
   } = form;
 
+  // Простая проверка
   if (
     !flightNumber ||
+    !airlineCode ||
     !departureAirport ||
     !arrivalAirport ||
     !departureTime ||
@@ -42,9 +45,10 @@ export async function createFlight(form) {
     throw new Error("Заполните все поля формы");
   }
 
-  if (departureAirport.length !== 3 || arrivalAirport.length !== 3) {
-    throw new Error("Коды аэропортов должны быть из 3 букв (IATA)");
+  if (airlineCode.length !== 2) {
+    throw new Error("Аббревиатура авиакомпании должна быть из 2 символов");
   }
+
 
   const depDate = new Date(departureTime);
   const arrDate = new Date(arrivalTime);
@@ -127,6 +131,7 @@ export async function deleteFlight(id) {
 export async function updateFlight(id, form) {
   const {
     flightNumber,
+    airlineCode,
     departureAirport,
     arrivalAirport,
     departureTime,
@@ -136,6 +141,7 @@ export async function updateFlight(id, form) {
 
   if (
     !flightNumber ||
+    !airlineCode ||
     !departureAirport ||
     !arrivalAirport ||
     !departureTime ||
@@ -145,8 +151,8 @@ export async function updateFlight(id, form) {
     throw new Error("Заполните все поля формы");
   }
 
-  if (departureAirport.length !== 3 || arrivalAirport.length !== 3) {
-    throw new Error("Коды аэропортов должны быть из 3 букв (IATA)");
+  if (airlineCode.length !== 2) {
+    throw new Error("Аббревиатура авиакомпании должна быть из 2 символов");
   }
 
   const depDate = new Date(departureTime);

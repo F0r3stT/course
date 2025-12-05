@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict 2L9NVevF6EaIETs3aykCne9QjfJzNobN5OZJWJ7Ok5XJTshfiPLxddQsQFlYefv
+\restrict dMOJhsxoo2ZaccQrQYr7zaRlv0LpGwmxbYq9WqhtJgkeYaExcWhqdHDHStlIdts
 
 -- Dumped from database version 16.11 (Ubuntu 16.11-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.11 (Ubuntu 16.11-0ubuntu0.24.04.1)
@@ -124,7 +124,10 @@ COPY public.flights (id, flight_number, departure_airport, arrival_airport, depa
 4	BAS	RES	LRN	2025-12-01 07:58:00+07	2025-12-02 08:58:00+07	boarding
 6	AIR2	RES	LRN	2025-12-02 10:25:00+07	2025-12-03 10:25:00+07	boarding
 9	SEC1	SVO	LHR	2025-12-05 17:00:00+07	2025-12-05 20:00:00+07	scheduled
-3	BA300	LHE	DXB	2025-12-04 18:00:00+07	2025-12-05 04:00:00+07	boarding
+3	BA300	LHE	DXB	2025-12-04 18:00:00+07	2025-12-05 04:00:00+07	delayed
+11	s7 7547	NKO	BRL	2025-12-05 22:03:00+07	2025-12-05 23:03:00+07	scheduled
+12	S7 2523	SVO	NKR	2025-12-05 22:09:00+07	2025-12-06 02:03:00+07	scheduled
+13	2425	NUD	SVO	2025-12-05 22:23:00+07	2025-12-06 22:23:00+07	delayed
 \.
 
 
@@ -141,7 +144,7 @@ COPY public.users (id, username, password_hash, role, created_at) FROM stdin;
 -- Name: flights_id_seq; Type: SEQUENCE SET; Schema: public; Owner: flights_user
 --
 
-SELECT pg_catalog.setval('public.flights_id_seq', 9, true);
+SELECT pg_catalog.setval('public.flights_id_seq', 13, true);
 
 
 --
@@ -176,8 +179,29 @@ ALTER TABLE ONLY public.users
 
 
 --
+-- Name: SCHEMA public; Type: ACL; Schema: -; Owner: pg_database_owner
+--
+
+GRANT USAGE ON SCHEMA public TO flights_analytics;
+
+
+--
+-- Name: TABLE flights; Type: ACL; Schema: public; Owner: flights_user
+--
+
+GRANT SELECT ON TABLE public.flights TO flights_analytics;
+
+
+--
+-- Name: TABLE users; Type: ACL; Schema: public; Owner: flights_user
+--
+
+GRANT SELECT ON TABLE public.users TO flights_analytics;
+
+
+--
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 2L9NVevF6EaIETs3aykCne9QjfJzNobN5OZJWJ7Ok5XJTshfiPLxddQsQFlYefv
+\unrestrict dMOJhsxoo2ZaccQrQYr7zaRlv0LpGwmxbYq9WqhtJgkeYaExcWhqdHDHStlIdts
 

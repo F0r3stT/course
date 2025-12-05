@@ -10,7 +10,7 @@ import (
 	"flight_backend/internal/db"
 	"flight_backend/internal/flights"
 	"flight_backend/internal/middleware"
-	"flight_backend/internal/users"
+	"flight_backend/internal/users" // <-- добавь импорт
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -43,30 +43,28 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"message": "pong"})
 	})
 
-	// AUTH
-	usersRepo := users.NewPGRepository(pool)
-	authHandler := auth.NewHandler(usersRepo)
-	authHandler.RegisterRoutes(r)
+	// === USERS REPO для авторизации ===
+	userRepo := users.NewPGRepository(pool) // <-- ВАЖНО: создаём репозиторий
 
-	// FLIGHTS
+	// === AUTH ===
+	authHandler := auth.NewHandler(userRepo) // <-- сюда передаём не pool, а userRepo
+	r.POST("/api/auth/login", authHandler.Login)
+
+	// === FLIGHTS ===
 	flightsHandler := flights.NewHandler(pool)
 
-	// Публичный просмотр
+	// публичное табло
 	r.GET("/api/flights", flightsHandler.GetFlights)
 
-	// Авторизованные операции
-	authRequired := r.Group("/", middleware.AuthRequired())
-	{
-		authRequired.POST("/api/flights", flightsHandler.CreateFlight)
-		authRequired.PUT("/api/flights/:id", flightsHandler.UpdateFlight)
-		authRequired.PATCH("/api/flights/:id/status", flightsHandler.UpdateFlightStatus)
-	}
+	// защищённые маршруты
+	api := r.Group("/api")
+	api.Use(middleware.AuthRequired())
 
-	// Только admin может удалять рейсы
-	adminOnly := r.Group("/", middleware.AuthRequired(), middleware.AdminOnly())
-	{
-		adminOnly.DELETE("/api/flights/:id", flightsHandler.DeleteFlight)
-	}
+	flightsGroup := api.Group("/flights")
+	flightsGroup.POST("", middleware.RequireRole("admin", "staff"), flightsHandler.CreateFlight)
+	flightsGroup.PUT("/:id", middleware.RequireRole("admin", "staff"), flightsHandler.UpdateFlight)
+	flightsGroup.PATCH("/:id/status", middleware.RequireRole("admin", "staff"), flightsHandler.UpdateFlightStatus)
+	flightsGroup.DELETE("/:id", middleware.RequireRole("admin", "staff"), flightsHandler.DeleteFlight)
 
 	if err := r.Run(":8080"); err != nil {
 		log.Fatalf("failed to run server: %v", err)

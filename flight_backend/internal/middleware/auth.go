@@ -1,67 +1,50 @@
+// internal/middleware/auth.go
 package middleware
 
 import (
 	"net/http"
+	"os"
 	"strings"
 
-	"flight_backend/internal/auth"
-
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
-const (
-	ContextUserIDKey = "userID"
-	ContextRoleKey   = "role"
-)
-
-// AuthRequired — проверяет JWT-токен в заголовке Authorization.
-// Если токен валиден — кладёт userID и role в контекст.
-func AuthRequired() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		header := c.GetHeader("Authorization")
-		if header == "" || !strings.HasPrefix(header, "Bearer ") {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": "missing or invalid Authorization header",
-			})
-			return
-		}
-
-		token := strings.TrimPrefix(header, "Bearer ")
-
-		claims, err := auth.ParseToken(token)
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": "invalid token",
-			})
-			return
-		}
-
-		// сохраняем данные пользователя в контекст Gin
-		c.Set(ContextUserIDKey, claims.UserID)
-		c.Set(ContextRoleKey, claims.Role)
-
-		c.Next()
-	}
+type Claims struct {
+	UserID int64  `json:"user_id"`
+	Role   string `json:"role"`
+	jwt.RegisteredClaims
 }
 
-// AdminOnly — допускает только пользователей с ролью admin.
-func AdminOnly() gin.HandlerFunc {
+func AuthRequired() gin.HandlerFunc {
+	secret := os.Getenv("JWT_SECRET")
+
 	return func(c *gin.Context) {
-		roleVal, ok := c.Get(ContextRoleKey)
-		if !ok {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
-				"error": "no role in context",
-			})
+		header := c.GetHeader("Authorization")
+		if !strings.HasPrefix(header, "Bearer ") {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing or invalid Authorization header"})
 			return
 		}
 
-		role, _ := roleVal.(string)
-		if role != "admin" {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
-				"error": "insufficient permissions",
-			})
+		tokenString := strings.TrimPrefix(header, "Bearer ")
+
+		token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(t *jwt.Token) (interface{}, error) {
+			return []byte(secret), nil
+		})
+		if err != nil || !token.Valid {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
 			return
 		}
+
+		claims, ok := token.Claims.(*Claims)
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims"})
+			return
+		}
+
+		// Кладём в контекст, КЛЮЧИ ДОЛЖНЫ СОВПАДАТЬ с тем, что читает RequireRole
+		c.Set("userID", claims.UserID)
+		c.Set("userRole", claims.Role)
 
 		c.Next()
 	}

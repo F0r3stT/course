@@ -1,127 +1,280 @@
-import { useEffect, useState } from "react";
+// src/pages/FlightsPage.jsx
+import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "../context/AuthContext.jsx";
 import {
   fetchFlights,
+  createFlight,
+  updateFlight,
   updateFlightStatus,
   deleteFlight,
-} from "../api/flightsApi";
-import FlightForm from "../components/flights/FlightForm";
-import FlightsTable from "../components/flights/FlightsTable";
-function FlightsPage() {
+} from "../api/flightsApi.js";
+import FlightsTable from "../components/flights/FlightsTable.jsx";
+import FlightForm from "../components/flights/FlightForm.jsx";
+
+const DEFAULT_AIRPORT = "SVO"; // главный аэропорт для табло (можешь поменять)
+
+// Русские подписи статусов для отображения
+export const STATUS_LABELS_RU = {
+  scheduled: "По расписанию",
+  boarding: "Посадка",
+  delayed: "Задержан",
+  cancelled: "Отменён",
+  in_air: "В полёте",
+  landed: "Прибыл",
+};
+
+function isSameDate(isoString, targetDateYmd) {
+  const d = new Date(isoString);
+  if (Number.isNaN(d.getTime())) return false;
+  return d.toISOString().slice(0, 10) === targetDateYmd;
+}
+
+export default function FlightsPage() {
+  const { isAuthenticated, user } = useAuth();
+  const canManage =
+    isAuthenticated && user && (user.role === "admin" || user.role === "staff");
+
   const [flights, setFlights] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(null);
-  const [statusError, setStatusError] = useState(null);
+  const [error, setError] = useState("");
 
-  const [formMode, setFormMode] = useState("create"); // "create" | "edit"
+  const [boardMode, setBoardMode] = useState("departures"); // departures | arrivals
+  const [selectedDate, setSelectedDate] = useState(
+    () => new Date().toISOString().slice(0, 10),
+  );
+
   const [editingFlight, setEditingFlight] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+
+  const loadFlights = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const data = await fetchFlights();
+      setFlights(data);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Ошибка загрузки рейсов");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    fetchFlights()
-      .then((data) => {
-        setFlights(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching flights:", err);
-        setLoadError(err.message);
-        setLoading(false);
-      });
+    loadFlights();
   }, []);
 
-  function handleFlightCreated(newFlight) {
-    setFlights((prev) => [...prev, newFlight]);
-  }
+  const handleRefresh = () => {
+    loadFlights();
+  };
 
-  function handleEditClick(flight) {
+  const filteredFlights = useMemo(() => {
+    return flights
+      .filter((f) => {
+        const timeToUse =
+          boardMode === "departures" ? f.departure_time : f.arrival_time;
+        if (!isSameDate(timeToUse, selectedDate)) return false;
+
+        if (boardMode === "departures") {
+          return f.departure_airport === DEFAULT_AIRPORT;
+        }
+        return f.arrival_airport === DEFAULT_AIRPORT;
+      })
+      .sort((a, b) => {
+        const ta =
+          boardMode === "departures"
+            ? new Date(a.departure_time)
+            : new Date(a.arrival_time);
+        const tb =
+          boardMode === "departures"
+            ? new Date(b.departure_time)
+            : new Date(b.arrival_time);
+        return ta - tb;
+      });
+  }, [flights, boardMode, selectedDate]);
+
+  // ====== обработчики для сотрудника ======
+
+  const handleCreateClick = () => {
+    setEditingFlight(null);
+    setShowForm(true);
+  };
+
+  const handleEdit = (flight) => {
     setEditingFlight(flight);
-    setFormMode("edit");
-  }
+    setShowForm(true);
+  };
 
-  function handleFlightUpdated(updatedFlight) {
-    setFlights((prev) =>
-      prev.map((f) => (f.id === updatedFlight.id ? updatedFlight : f))
-    );
-    setEditingFlight(null);
-    setFormMode("create");
-  }
-
-  function handleCancelEdit() {
-    setEditingFlight(null);
-    setFormMode("create");
-  }
-
-  async function handleStatusChange(id, newStatus) {
-    setStatusError(null);
+  const handleDelete = async (flight) => {
+    if (!window.confirm(`Удалить рейс ${flight.flight_number}?`)) return;
     try {
-      const updated = await updateFlightStatus(id, newStatus);
-      setFlights((prev) =>
-        prev.map((f) => (f.id === updated.id ? updated : f))
-      );
+      await deleteFlight(flight.id);
+      await loadFlights();
     } catch (err) {
-      console.error("Error updating status:", err);
-      setStatusError(err.message);
+      alert(err.message || "Ошибка удаления рейса");
     }
-  }
+  };
 
-  async function handleDelete(id) {
-    setStatusError(null);
+  const handleSetDelayed = async (flight) => {
     try {
-      await deleteFlight(id);
-      setFlights((prev) => prev.filter((f) => f.id !== id));
-      // если удалили рейс, который редактировали — сбросить режим
-      if (editingFlight && editingFlight.id === id) {
-        setEditingFlight(null);
-        setFormMode("create");
+      await updateFlightStatus(flight.id, "delayed");
+      await loadFlights();
+    } catch (err) {
+      alert(err.message || "Ошибка изменения статуса");
+    }
+  };
+
+  const handleSetCancelled = async (flight) => {
+    try {
+      await updateFlightStatus(flight.id, "cancelled");
+      await loadFlights();
+    } catch (err) {
+      alert(err.message || "Ошибка изменения статуса");
+    }
+  };
+
+  const handleFormSubmit = async (formData) => {
+    try {
+      if (editingFlight) {
+        await updateFlight(editingFlight.id, formData);
+      } else {
+        await createFlight(formData);
       }
+      setShowForm(false);
+      setEditingFlight(null);
+      await loadFlights();
     } catch (err) {
-      console.error("Error deleting flight:", err);
-      setStatusError(err.message);
+      alert(err.message || "Ошибка сохранения рейса");
     }
-  }
+  };
 
-  if (loading) {
-    return <div style={{ padding: 20 }}>Загрузка рейсов...</div>;
-  }
-
-  if (loadError) {
-    return (
-      <div style={{ padding: 20 }}>
-        <h1>Рейсы авиакомпании</h1>
-        <p style={{ color: "red" }}>Ошибка загрузки рейсов: {loadError}</p>
-      </div>
-    );
-  }
-
-  const formTitle =
-    formMode === "create" ? "Создать новый рейс" : "Редактировать рейс";
+  const handleFormCancel = () => {
+    setShowForm(false);
+    setEditingFlight(null);
+  };
 
   return (
-    <div style={{ padding: 20, maxWidth: 900, margin: "0 auto" }}>
-      <h1>Рейсы авиакомпании</h1>
+    <div>
+      {/* Панель табло */}
+      <section
+        style={{
+          marginBottom: 24,
+          padding: 16,
+          border: "1px solid #ddd",
+          borderRadius: 8,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            gap: 16,
+            alignItems: "center",
+            marginBottom: 12,
+            flexWrap: "wrap",
+          }}
+        >
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              onClick={() => setBoardMode("departures")}
+              style={{
+                padding: "6px 12px",
+                borderRadius: 4,
+                border:
+                  boardMode === "departures"
+                    ? "2px solid #1976d2"
+                    : "1px solid #ccc",
+                backgroundColor:
+                  boardMode === "departures" ? "#e3f2fd" : "#f5f5f5",
+                cursor: "pointer",
+              }}
+            >
+              Вылеты
+            </button>
+            <button
+              onClick={() => setBoardMode("arrivals")}
+              style={{
+                padding: "6px 12px",
+                borderRadius: 4,
+                border:
+                  boardMode === "arrivals"
+                    ? "2px solid #1976d2"
+                    : "1px solid #ccc",
+                backgroundColor:
+                  boardMode === "arrivals" ? "#e3f2fd" : "#f5f5f5",
+                cursor: "pointer",
+              }}
+            >
+              Прилёты
+            </button>
+          </div>
 
-      <h2>{formTitle}</h2>
-      <FlightForm
-        mode={formMode}
-        initialFlight={editingFlight}
-        onFlightCreated={handleFlightCreated}
-        onFlightUpdated={handleFlightUpdated}
-        onCancel={handleCancelEdit}
-      />
+          <div>
+            <label style={{ marginRight: 8 }}>Дата:</label>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+            />
+          </div>
 
-      <h2>Список рейсов</h2>
-      {statusError && (
-        <p style={{ color: "red" }}>
-          Ошибка при обновлении статуса / удалении: {statusError}
-        </p>
+          <div>
+            <span>
+              Аэропорт табло: <strong>{DEFAULT_AIRPORT}</strong>
+            </span>
+          </div>
+
+          <button onClick={handleRefresh}>Обновить</button>
+        </div>
+
+        {loading && <p>Загрузка рейсов...</p>}
+        {error && <p style={{ color: "red" }}>{error}</p>}
+        {!loading && !error && filteredFlights.length === 0 && (
+          <p>Рейсов по выбранным критериям нет.</p>
+        )}
+
+        {!loading && !error && filteredFlights.length > 0 && (
+          <FlightsTable
+            flights={filteredFlights}
+            mode={boardMode}
+            canManage={canManage}
+            onSetDelayed={handleSetDelayed}
+            onSetCancelled={handleSetCancelled}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        )}
+      </section>
+
+      {/* Панель управления рейсами только для сотрудников */}
+      {canManage && (
+        <section
+          style={{
+            padding: 16,
+            border: "1px solid #ddd",
+            borderRadius: 8,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 12,
+            }}
+          >
+            <h2 style={{ margin: 0 }}>Управление рейсами</h2>
+            <button onClick={handleCreateClick}>Создать рейс</button>
+          </div>
+
+          {showForm && (
+            <FlightForm
+              initialFlight={editingFlight}
+              onSubmit={handleFormSubmit}
+              onCancel={handleFormCancel}
+            />
+          )}
+        </section>
       )}
-      <FlightsTable
-        flights={flights}
-        onChangeStatus={handleStatusChange}
-        onDelete={handleDelete}
-        onEdit={handleEditClick}
-      />
     </div>
   );
 }
-
-export default FlightsPage;
