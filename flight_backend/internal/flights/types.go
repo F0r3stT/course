@@ -3,48 +3,47 @@ package flights
 import "time"
 
 // допустимые статусы рейса — синхронизированы с CHECK в БД
-var allowedStatuses = map[string]struct{}{
-	"scheduled": {},
-	"boarding":  {},
-	"delayed":   {},
-	"cancelled": {},
-	"in_air":    {},
-	"landed":    {},
-}
 
-// Flight — модель рейса для ответов (то, что отдаём на фронт).
 type Flight struct {
-	ID               int       `json:"id"`
+	ID               int64     `json:"id"`
 	FlightNumber     string    `json:"flight_number"`
+	AirlineCode      *string   `json:"airline_code,omitempty"`
 	DepartureAirport string    `json:"departure_airport"`
 	ArrivalAirport   string    `json:"arrival_airport"`
 	DepartureTime    time.Time `json:"departure_time"`
 	ArrivalTime      time.Time `json:"arrival_time"`
 	Status           string    `json:"status"`
+	AircraftType     *string   `json:"aircraft_type,omitempty"`
+	GateSector       *string   `json:"gate_sector,omitempty"`
 }
 
-// CreateFlightRequest — входные данные для создания рейса.
-// Время приходит строкой в формате RFC3339 от фронтенда.
+// CreateFlightRequest — JSON, который приходит от фронта при создании.
 type CreateFlightRequest struct {
-	FlightNumber     string `json:"flight_number"`
-	DepartureAirport string `json:"departure_airport"`
-	ArrivalAirport   string `json:"arrival_airport"`
-	DepartureTime    string `json:"departure_time"` // ISO строка, например "2025-12-04T10:00:00Z"
-	ArrivalTime      string `json:"arrival_time"`
-	Status           string `json:"status"`
+	FlightNumber     string  `json:"flight_number"`
+	AirlineCode      *string `json:"airline_code"`
+	DepartureAirport string  `json:"departure_airport"`
+	ArrivalAirport   string  `json:"arrival_airport"`
+	DepartureTime    string  `json:"departure_time"` // ISO-строки, парсим в time.Time
+	ArrivalTime      string  `json:"arrival_time"`
+	Status           string  `json:"status"`
+	AircraftType     *string `json:"aircraft_type"`
+	GateSector       *string `json:"gate_sector"`
 }
 
-// UpdateFlightRequest — входные данные для полного обновления рейса (PUT).
+// UpdateFlightRequest — полное обновление рейса (PUT).
 type UpdateFlightRequest struct {
-	FlightNumber     string `json:"flight_number"`
-	DepartureAirport string `json:"departure_airport"`
-	ArrivalAirport   string `json:"arrival_airport"`
-	DepartureTime    string `json:"departure_time"`
-	ArrivalTime      string `json:"arrival_time"`
-	Status           string `json:"status"`
+	FlightNumber     string  `json:"flight_number"`
+	AirlineCode      *string `json:"airline_code"`
+	DepartureAirport string  `json:"departure_airport"`
+	ArrivalAirport   string  `json:"arrival_airport"`
+	DepartureTime    string  `json:"departure_time"`
+	ArrivalTime      string  `json:"arrival_time"`
+	Status           string  `json:"status"`
+	AircraftType     *string `json:"aircraft_type"`
+	GateSector       *string `json:"gate_sector"`
 }
 
-// UpdateStatusRequest — входные данные для частичного обновления статуса рейса (PATCH).
+// UpdateStatusRequest — частичное обновление только статуса.
 type UpdateStatusRequest struct {
 	Status string `json:"status"`
 }

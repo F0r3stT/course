@@ -29,11 +29,13 @@ type loginRequest struct {
 
 func (h *Handler) Login(c *gin.Context) {
 	var req loginRequest
-
 	if err := c.ShouldBindJSON(&req); err != nil {
+		ip := c.ClientIP()
+		log.Printf("audit: login_failed ip=%s reason=%s", ip, "invalid_json")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
 		return
 	}
+	ip := c.ClientIP()
 
 	if req.Username == "" || req.Password == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "username and password are required"})
@@ -43,14 +45,13 @@ func (h *Handler) Login(c *gin.Context) {
 	ctx := c.Request.Context()
 	user, err := h.Users.GetByUsername(ctx, req.Username)
 	if err != nil {
-		// по безопасности: не раскрываем, существует ли пользователь
-		log.Printf("login: user not found or db error: %v", err)
+		log.Printf("audit: login_failed username=%s ip=%s reason=%s", req.Username, ip, "db_error_or_not_found")
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
 		return
 	}
 
 	if err := CheckPassword(user.PasswordHash, req.Password); err != nil {
-		log.Printf("login: invalid password for user %s", user.Username)
+		log.Printf("audit: login_failed username=%s ip=%s reason=%s", req.Username, ip, "bad_password")
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
 		return
 	}
@@ -61,6 +62,8 @@ func (h *Handler) Login(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
 		return
 	}
+
+	log.Printf("audit: login_success username=%s ip=%s role=%s", user.Username, ip, user.Role)
 
 	c.JSON(http.StatusOK, gin.H{
 		"token": token,

@@ -14,7 +14,7 @@ var (
 )
 
 type Claims struct {
-	UserID int    `json:"user_id"`
+	UserID int64  `json:"user_id"`
 	Role   string `json:"role"`
 	jwt.RegisteredClaims
 }
@@ -27,7 +27,7 @@ func getSecret() ([]byte, error) {
 	return []byte(secret), nil
 }
 
-func GenerateToken(userID int, role string) (string, error) {
+func GenerateToken(userID int64, role string) (string, error) {
 	secret, err := getSecret()
 	if err != nil {
 		return "", err

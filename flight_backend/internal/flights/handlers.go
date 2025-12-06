@@ -90,8 +90,9 @@ func (h *Handler) CreateFlight(c *gin.Context) {
 		return
 	}
 
-	depTime, arrTime, err := validateFlightInput(
+	depTime, arrTime, err := validateFlightRequest(
 		req.FlightNumber,
+		valueOrEmpty(req.AirlineCode),
 		req.DepartureAirport,
 		req.ArrivalAirport,
 		req.Status,
@@ -136,8 +137,20 @@ func (h *Handler) CreateFlight(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
+	userID, _ := c.Get("userID")
+	userRole, _ := c.Get("userRole")
+
+	log.Printf("audit: flight_created id=%d flight_number=%s by_user=%v role=%v",
+		newFlight.ID, newFlight.FlightNumber, userID, userRole)
 
 	c.JSON(http.StatusCreated, newFlight)
+}
+
+func valueOrEmpty(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
 }
 
 // PUT /api/flights/:id — полное обновление рейса.
@@ -155,8 +168,9 @@ func (h *Handler) UpdateFlight(c *gin.Context) {
 		return
 	}
 
-	depTime, arrTime, err := validateFlightInput(
+	depTime, arrTime, err := validateFlightRequest(
 		req.FlightNumber,
+		valueOrEmpty(req.AirlineCode),
 		req.DepartureAirport,
 		req.ArrivalAirport,
 		req.Status,
@@ -210,6 +224,10 @@ func (h *Handler) UpdateFlight(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
+	userID, _ := c.Get("userID")
+	userRole, _ := c.Get("userRole")
+	log.Printf("audit: flight_updated id=%d flight_number=%s by_user=%v role=%v",
+		updated.ID, updated.FlightNumber, userID, userRole)
 
 	c.JSON(http.StatusOK, updated)
 }
@@ -229,12 +247,8 @@ func (h *Handler) UpdateFlightStatus(c *gin.Context) {
 		return
 	}
 
-	if req.Status == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "status is required"})
-		return
-	}
-	if _, ok := allowedStatuses[req.Status]; !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "недопустимый статус"})
+	if err := validateStatusOnly(req.Status); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -267,7 +281,10 @@ func (h *Handler) UpdateFlightStatus(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
-
+	userID, _ := c.Get("userID")
+	userRole, _ := c.Get("userRole")
+	log.Printf("audit: flight_status_changed id=%d new_status=%s by_user=%v role=%v",
+		updated.ID, updated.Status, userID, userRole)
 	c.JSON(http.StatusOK, updated)
 }
 
@@ -293,6 +310,9 @@ func (h *Handler) DeleteFlight(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "flight not found"})
 		return
 	}
+	userID, _ := c.Get("userID")
+	userRole, _ := c.Get("userRole")
+	log.Printf("audit: flight_deleted id=%d by_user=%v role=%v", id, userID, userRole)
 
 	c.Status(http.StatusNoContent) // 204
 }

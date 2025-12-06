@@ -1,71 +1,76 @@
 // src/App.jsx
+import { useState } from "react";
 import "./App.css";
 import FlightsPage from "./pages/FlightsPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
-import { useEffect, useState } from "react";
 
-function App() {
-  const { isAuthenticated, user, logout, initialized } = useAuth();
+export default function App() {
+  const { user, logout } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
 
-  // Как только залогинились — скрываем форму логина и показываем табло с правами
-  useEffect(() => {
-    if (isAuthenticated) {
-      setShowLogin(false);
-    }
-  }, [isAuthenticated]);
+  const handleLogout = () => {
+    logout();
+    setShowLogin(false);
+  };
 
-  if (!initialized) {
-    return <div style={{ padding: 20 }}>Загрузка...</div>;
-  }
-
-  const handleLoginClick = () => {
-    setShowLogin(true);
+  const handleLoginSuccess = () => {
+    setShowLogin(false);
   };
 
   return (
-    <div className="App">
-      <header
-        style={{
-          padding: "12px 24px",
-          borderBottom: "1px solid #ddd",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <div>
-          <h1 style={{ margin: 0, fontSize: 24 }}>Онлайн-табло рейсов</h1>
-          <p style={{ margin: "4px 0 0 0", color: "#555", fontSize: 14 }}>
-            Прилёты и вылеты. Посетитель видит табло, сотрудники могут
-            редактировать рейсы.
-          </p>
+    <div className="app-root">
+      <header className="app-header">
+        <div className="app-logo">
+          <div className="app-logo-main">FLY WINGS</div>
+          <div className="app-logo-sub">airport flight monitor</div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          {isAuthenticated && user ? (
+        <div className="app-header-right">
+          {user ? (
             <>
-              <span>
-                Пользователь: <strong>{user.username}</strong> ({user.role})
+              <span className="app-user-label">
+                Вошли как: <strong>{user.username}</strong> ({user.role})
               </span>
-              <button onClick={logout}>Выйти</button>
+              <button
+                className="btn btn-ghost btn-sm"
+                type="button"
+                onClick={handleLogout}
+              >
+                Выйти
+              </button>
             </>
           ) : (
-            <button onClick={handleLoginClick}>Войти</button>
+            <>
+              <span className="app-user-label">Режим посетителя</span>
+              <button
+                className="btn btn-primary btn-sm"
+                type="button"
+                onClick={() => setShowLogin(true)}
+              >
+                Войти как сотрудник
+              </button>
+            </>
           )}
         </div>
       </header>
 
-      <main style={{ padding: 24, maxWidth: 1100, margin: "0 auto" }}>
-        {showLogin && !isAuthenticated ? (
-          <LoginPage />
-        ) : (
+      <main className="app-main">
+        <div className="board-shell">
           <FlightsPage />
-        )}
+        </div>
       </main>
+
+      {showLogin && !user && (
+        <div className="modal-backdrop" onClick={() => setShowLogin(false)}>
+          <div
+            className="modal-panel"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <LoginPage onSuccess={handleLoginSuccess} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-export default App;

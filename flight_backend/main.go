@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"flight_backend/internal/auth"
@@ -28,9 +29,18 @@ func main() {
 	defer pool.Close()
 
 	r := gin.Default()
+	// Не доверяем случайным прокси
+	if err := r.SetTrustedProxies(nil); err != nil {
+		log.Fatalf("failed to set trusted proxies: %v", err)
+	}
+
+	frontendOrigin := os.Getenv("FRONTEND_ORIGIN")
+	if frontendOrigin == "" {
+		frontendOrigin = "http://localhost:5173"
+	}
 
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173"},
+		AllowOrigins:     []string{frontendOrigin},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -44,11 +54,12 @@ func main() {
 	})
 
 	// === USERS REPO для авторизации ===
-	userRepo := users.NewPGRepository(pool) // <-- ВАЖНО: создаём репозиторий
+	usersRepo := users.NewPGRepository(pool) // <-- ВАЖНО: создаём репозиторий
 
 	// === AUTH ===
-	authHandler := auth.NewHandler(userRepo) // <-- сюда передаём не pool, а userRepo
-	r.POST("/api/auth/login", authHandler.Login)
+	authHandler := auth.NewHandler(usersRepo)
+	authGroup := r.Group("/api/auth")
+	authGroup.POST("/login", middleware.LoginRateLimit(), authHandler.Login)
 
 	// === FLIGHTS ===
 	flightsHandler := flights.NewHandler(pool)
