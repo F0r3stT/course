@@ -23,6 +23,54 @@ export const STATUS_LABELS_RU = {
   landed: "Прибыл",
 };
 
+// формат времени для подробной карточки
+function formatDateTimeRu(iso) {
+  if (!iso) return "-";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "-";
+  return d.toLocaleString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+// Описание в зависимости от статуса рейса
+function getStatusDescription(flight) {
+  const dep = flight?.departure_time;
+  const arr = flight?.arrival_time;
+
+  switch (flight.status) {
+    case "landed":
+      return `Рейс прибыл. Вылет: ${formatDateTimeRu(
+        dep,
+      )}, посадка: ${formatDateTimeRu(arr)}.`;
+    case "delayed":
+      return `Рейс задержан. Новое расчётное время вылета: ${formatDateTimeRu(
+        dep,
+      )}, прибытия: ${formatDateTimeRu(arr)}.`;
+    case "boarding":
+      return `Идёт посадка. Плановый вылет: ${formatDateTimeRu(
+        dep,
+      )}, плановое прибытие: ${formatDateTimeRu(arr)}.`;
+    case "in_air":
+      return `Рейс в полёте. Вылет: ${formatDateTimeRu(
+        dep,
+      )}, расчётное время прибытия: ${formatDateTimeRu(arr)}.`;
+    case "cancelled":
+      return `Рейс отменён. Плановый вылет: ${formatDateTimeRu(
+        dep,
+      )}, плановое прибытие: ${formatDateTimeRu(arr)}.`;
+    case "scheduled":
+    default:
+      return `Рейс ожидается. Плановый вылет: ${formatDateTimeRu(
+        dep,
+      )}, плановое прибытие: ${formatDateTimeRu(arr)}.`;
+  }
+}
+
+
 function isSameDate(isoString, targetDateYmd) {
   const d = new Date(isoString);
   if (Number.isNaN(d.getTime())) return false;
@@ -45,6 +93,7 @@ export default function FlightsPage() {
 
   const [editingFlight, setEditingFlight] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [selectedFlight, setSelectedFlight] = useState(null); 
 
   const loadFlights = async () => {
     setLoading(true);
@@ -103,6 +152,13 @@ export default function FlightsPage() {
   const handleEdit = (flight) => {
     setEditingFlight(flight);
     setShowForm(true);
+  };
+    const handleSelectFlight = (flight) => {
+    setSelectedFlight(flight);
+  };
+
+  const handleCloseDetails = () => {
+    setSelectedFlight(null);
   };
 
   const handleDelete = async (flight) => {
@@ -241,9 +297,77 @@ export default function FlightsPage() {
             onSetCancelled={handleSetCancelled}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onSelectFlight={handleSelectFlight}
           />
         )}
       </section>
+        {/* Подробная информация о выбранном рейсе */}
+{selectedFlight && (
+  <section
+    style={{
+      marginTop: 16,
+      padding: 16,
+      border: "1px solid #ddd",
+      borderRadius: 8,
+      backgroundColor: "#fafafa",
+    }}
+  >
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 8,
+      }}
+    >
+      <h3 style={{ margin: 0 }}>
+        Подробная информация о рейсе {selectedFlight.flight_number}
+      </h3>
+      <button onClick={handleCloseDetails}>Закрыть</button>
+    </div>
+
+    {(() => {
+      const airlineCode = selectedFlight.airline_code
+        ? selectedFlight.airline_code
+        : selectedFlight.flight_number
+            ?.slice(0, 2)
+            .toUpperCase();
+
+      const aircraftType = selectedFlight.aircraft_type || "не указано";
+      const gateSector = selectedFlight.gate_sector || "не указан";
+      const statusLabel =
+        STATUS_LABELS_RU[selectedFlight.status] || selectedFlight.status;
+
+      return (
+        <div style={{ display: "grid", gap: 6 }}>
+          <div>
+            <strong>Номер рейса:</strong> {selectedFlight.flight_number}
+          </div>
+          <div>
+            <strong>Авиакомпания:</strong> {airlineCode}
+          </div>
+          <div>
+            <strong>Маршрут:</strong>{" "}
+            {selectedFlight.departure_airport} →{" "}
+            {selectedFlight.arrival_airport}
+          </div>
+          <div>
+            <strong>Воздушное судно (ВС):</strong> {aircraftType}
+          </div>
+          <div>
+            <strong>Сектор прибытия:</strong> {gateSector}
+          </div>
+          <div>
+            <strong>Статус:</strong> {statusLabel}
+          </div>
+          <div>
+            {getStatusDescription(selectedFlight)}
+          </div>
+        </div>
+      );
+    })()}
+  </section>
+)}
 
       {/* Панель управления рейсами только для сотрудников */}
       {canManage && (

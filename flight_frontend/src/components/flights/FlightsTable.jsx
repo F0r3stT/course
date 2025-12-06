@@ -20,6 +20,7 @@ export default function FlightsTable({
   onSetCancelled,
   onEdit,
   onDelete,
+  onSelectFlight,
 }) {
   const timeColumnTitle = mode === "departures" ? "Время вылета" : "Время прилёта";
 
@@ -52,8 +53,12 @@ export default function FlightsTable({
           const statusLabel = STATUS_LABELS_RU[f.status] || f.status;
 
           return (
-            <tr key={f.id}>
-              <td style={tdStyle}>{f.flight_number}</td>
+            <tr
+    key={f.id}
+    onClick={() => onSelectFlight && onSelectFlight(f)}
+    style={{ cursor: onSelectFlight ? "pointer" : "default" }}
+  >
+    <td style={tdStyle}>{f.flight_number}</td>
               <td style={tdStyle}>{airlineCode}</td>
               <td style={tdStyle}>{f.departure_airport}</td>
               <td style={tdStyle}>{f.arrival_airport}</td>
@@ -63,29 +68,45 @@ export default function FlightsTable({
                 <td style={tdStyle}>
                   <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
                     <button
-                      onClick={() => onSetDelayed(f)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSetDelayed(f);
+                      }}
                       style={{ fontSize: 12 }}
                     >
                       Задержать
                     </button>
+
                     <button
-                      onClick={() => onSetCancelled(f)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSetCancelled(f);
+                      }}
                       style={{ fontSize: 12 }}
                     >
                       Отменить
                     </button>
+
                     <button
-                      onClick={() => onEdit(f)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(f);
+                      }}
                       style={{ fontSize: 12 }}
                     >
                       Редактировать
                     </button>
+
                     <button
-                      onClick={() => onDelete(f)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(f);
+                      }}
                       style={{ fontSize: 12 }}
                     >
                       Удалить
                     </button>
+
                   </div>
                 </td>
               )}
