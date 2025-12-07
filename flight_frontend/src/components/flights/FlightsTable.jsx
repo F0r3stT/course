@@ -1,12 +1,18 @@
-// src/components/flights/FlightsTable.jsx
-import { STATUS_LABELS_RU } from "../../pages/FlightsPage.jsx";
+import React from "react";
 
-function formatDateTimeRu(iso) {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "-";
-  return d.toLocaleString("ru-RU", {
-    day: "2-digit",
-    month: "2-digit",
+const STATUS_LABELS = {
+  scheduled: "По расписанию",
+  boarding: "Посадка",
+  delayed: "Задержан",
+  cancelled: "Отменён",
+  in_air: "В полёте",
+  landed: "Прибыл",
+};
+
+function formatTime(ts) {
+  if (!ts) return "—";
+  const d = new Date(ts);
+  return d.toLocaleTimeString("ru-RU", {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -14,148 +20,76 @@ function formatDateTimeRu(iso) {
 
 export default function FlightsTable({
   flights,
-  mode,
-  canManage,
-  onSetDelayed,
-  onSetCancelled,
-  onEdit,
-  onDelete,
+  mode,          // "departures" | "arrivals"
+  isAdmin,
   onSelectFlight,
+  onEditFlight,
 }) {
-  const isDepartures = mode === "departures";
-
-  const getStatusClass = (status) => {
-    switch (status) {
-      case "scheduled":
-        return "status-pill status-scheduled";
-      case "boarding":
-        return "status-pill status-boarding";
-      case "delayed":
-        return "status-pill status-delayed";
-      case "cancelled":
-        return "status-pill status-cancelled";
-      case "in_air":
-        return "status-pill status-in_air";
-      case "landed":
-        return "status-pill status-landed";
-      default:
-        return "status-pill";
-    }
-  };
-
-  const formatTime = (iso) => {
-    if (!iso) return "-";
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return "-";
-    return d.toLocaleTimeString("ru-RU", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+  const timeTitle = mode === "departures" ? "Время вылета" : "Время прилёта";
 
   return (
-    <table className="flights-table">
-      <thead>
-        <tr>
-          <th>Рейс</th>
-          <th>Авиакомпания</th>
-          <th>{isDepartures ? "Вылет" : "Прилёт"}</th>
-          <th>{isDepartures ? "Аэропорт прилёта" : "Аэропорт вылета"}</th>
-          <th>Статус</th>
-          {canManage && <th>Действия</th>}
-        </tr>
-      </thead>
-      <tbody>
-        {flights.map((f) => {
-          const airlineCode =
-            f.airline_code ||
-            (f.flight_number || "").slice(0, 2).toUpperCase();
+    <div className="board-table-wrapper">
+      <table className="board-table">
+        <thead>
+          <tr>
+            <th>Рейс</th>
+            <th>Авиакомпания</th>
+            <th>Откуда</th>
+            <th>Куда</th>
+            <th>{timeTitle}</th>
+            <th>Статус</th>
+            {isAdmin && <th>Действия</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {flights.length === 0 && (
+            <tr>
+              <td colSpan={isAdmin ? 7 : 6} className="empty-row">
+                Для выбранной даты и аэропорта рейсов нет
+              </td>
+            </tr>
+          )}
 
-          return (
-            <tr
-              key={f.id}
-              onClick={() => onSelectFlight && onSelectFlight(f)}
-              style={{ cursor: "pointer" }}
-            >
-              <td>{f.flight_number}</td>
-              <td>{airlineCode}</td>
-              <td>
-                {isDepartures
-                  ? formatTime(f.departure_time)
-                  : formatTime(f.arrival_time)}
-              </td>
-              <td>
-                {isDepartures
-                  ? f.arrival_airport
-                  : f.departure_airport}
-              </td>
-              <td>
-                <span className={getStatusClass(f.status)}>
-                  {f.status}
-                </span>
-              </td>
-              {canManage && (
+          {flights.map((f) => {
+            const mainTime =
+              mode === "departures" ? f.departure_time : f.arrival_time;
+
+            const statusLabel =
+              STATUS_LABELS[f.status] || f.status || "—";
+
+            return (
+              <tr
+                key={f.id}
+                className="board-row"
+                onClick={() => onSelectFlight && onSelectFlight(f)}
+              >
+                <td>{f.flight_number}</td>
+                <td>{f.airline_code || "—"}</td>
+                <td>{f.departure_airport}</td>
+                <td>{f.arrival_airport}</td>
+                <td>{formatTime(mainTime)}</td>
                 <td>
-                  <div style={{ display: "flex", gap: 6 }}>
-                    <button
-                      type="button"
-                      className="btn btn-sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSetDelayed(f);
-                      }}
-                    >
-                      Задержать
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-danger"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSetCancelled(f);
-                      }}
-                    >
-                      Отменить
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-ghost"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEdit(f);
-                      }}
-                    >
+                  <span className={`status-pill status-${f.status || "default"}`}>
+                    {statusLabel}
+                  </span>
+                </td>
+                {isAdmin && (
+                  <td
+                    onClick={(e) => {
+                      e.stopPropagation(); // чтобы не открывался модал
+                      onEditFlight && onEditFlight(f);
+                    }}
+                  >
+                    <button type="button" className="btn-ghost small">
                       Редактировать
                     </button>
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-ghost"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(f);
-                      }}
-                    >
-                      Удалить
-                    </button>
-                  </div>
-                </td>
-              )}
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
+                  </td>
+                )}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 }
-
-const thStyle = {
-  borderBottom: "2px solid #ccc",
-  padding: "8px 6px",
-  textAlign: "left",
-  backgroundColor: "#f5f5f5",
-};
-
-const tdStyle = {
-  borderBottom: "1px solid #eee",
-  padding: "6px 6px",
-};

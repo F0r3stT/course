@@ -25,6 +25,8 @@ export async function createFlight(form) {
   const {
     flightNumber,
     airlineCode,
+    airlineName,
+    aircraftType,
     departureAirport,
     arrivalAirport,
     departureTime,
@@ -32,7 +34,6 @@ export async function createFlight(form) {
     status,
   } = form;
 
-  // Простая проверка
   if (
     !flightNumber ||
     !airlineCode ||
@@ -49,7 +50,6 @@ export async function createFlight(form) {
     throw new Error("Аббревиатура авиакомпании должна быть из 2 символов");
   }
 
-
   const depDate = new Date(departureTime);
   const arrDate = new Date(arrivalTime);
 
@@ -59,6 +59,9 @@ export async function createFlight(form) {
 
   const payload = {
     flight_number: flightNumber,
+    airline_code: airlineCode,
+    airline_name: airlineName || null,
+    aircraft_type: aircraftType || null,
     departure_airport: departureAirport.toUpperCase(),
     arrival_airport: arrivalAirport.toUpperCase(),
     departure_time: depDate.toISOString(),
@@ -186,4 +189,47 @@ export async function updateFlight(id, form) {
   }
 
   return res.json();
+}
+export async function searchFlightStatus(
+  { mode, date, airportIata, flightNumber, fromAirport, toAirport },
+  token
+) {
+  // 1. Сначала забираем рейсы по дате + аэропорту + направлению
+  const flights = await fetchFlights(
+    {
+      date,
+      airportIata,
+      direction: mode, // "departures" / "arrivals"
+    },
+    token
+  );
+
+  // 2. Дополнительная фильтрация на фронте
+  return flights.filter((f) => {
+    // Номер рейса только цифры (как ты сделал в БД),
+    // на фронте он сейчас называется либо flightNumber, либо flight_number.
+    if (
+      flightNumber &&
+      String(f.flightNumber ?? f.flight_number) !== String(flightNumber)
+    ) {
+      return false;
+    }
+
+    // Фильтр по маршруту: откуда / куда
+    if (
+      fromAirport &&
+      (f.departureAirport ?? f.departure_airport) !== fromAirport
+    ) {
+      return false;
+    }
+
+    if (
+      toAirport &&
+      (f.arrivalAirport ?? f.arrival_airport) !== toAirport
+    ) {
+      return false;
+    }
+
+    return true;
+  });
 }

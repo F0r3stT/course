@@ -1,0 +1,93 @@
+.app-root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Верхняя панель */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 32px;
+  background: linear-gradient(
+    90deg,
+    rgba(15, 23, 42, 0.98),
+    rgba(15, 23, 42, 0.92),
+    rgba(15, 23, 42, 0.98)
+  );
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.app-logo {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.app-logo-main {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.app-logo-sub {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.24em;
+  color: var(--text-muted);
+}
+
+.app-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.app-user-label {
+  color: var(--text-muted);
+}
+
+/* Основной контент */
+.app-main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 24px 16px 40px;
+}
+
+.board-shell {
+  width: 100%;
+  max-width: 1920px;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* Двухколоночный layout */
+.board-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.5fr);
+  gap: 20px;
+}
+
+@media (max-width: 1024px) {
+  .board-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Карточки */
+.board-card,
+.admin-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-soft);
+  padding: 20px 20px 22px;
+}

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/time/rate"
 )
 
 type clientInfo struct {
@@ -26,6 +27,25 @@ func NewLoginRateLimiter(limit int, window time.Duration) *LoginRateLimiter {
 		Limit:      limit,
 		TimeWindow: window,
 		clients:    make(map[string]*clientInfo),
+	}
+}
+
+func RateLimitLogin(rps float64, burst int) gin.HandlerFunc {
+	// rate.NewLimiter принимает "запросов в секунду" и burst.
+	limiter := rate.NewLimiter(rate.Limit(rps), burst)
+
+	return func(c *gin.Context) {
+		// Применяем лимит только к POST /api/auth/login
+		if c.Request.Method == http.MethodPost && c.FullPath() == "/api/auth/login" {
+			if !limiter.Allow() {
+				c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
+					"error": "too many login attempts",
+				})
+				return
+			}
+		}
+
+		c.Next()
 	}
 }
 

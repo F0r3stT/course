@@ -1,76 +1,95 @@
-// src/App.jsx
-import { useState } from "react";
-import "./App.css";
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+
 import FlightsPage from "./pages/FlightsPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
-import { useAuth } from "./context/AuthContext.jsx";
+import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
 
-export default function App() {
+// базовые стили
+import "./styles/layout.css";
+import "./styles/controls.css";
+import "./styles/table.css";
+import "./styles/modal.css";
+import "./App.css";
+
+function PrivateRoute({ children }) {
+  const { user } = useAuth();
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
+
+function AppShell() {
   const { user, logout } = useAuth();
-  const [showLogin, setShowLogin] = useState(false);
 
   const handleLogout = () => {
     logout();
-    setShowLogin(false);
-  };
-
-  const handleLoginSuccess = () => {
-    setShowLogin(false);
   };
 
   return (
     <div className="app-root">
       <header className="app-header">
-        <div className="app-logo">
-          <div className="app-logo-main">FLY WINGS</div>
-          <div className="app-logo-sub">airport flight monitor</div>
-        </div>
+        <div className="app-logo">FLY WINGS</div>
 
-        <div className="app-header-right">
+        <div className="app-user-block">
           {user ? (
             <>
-              <span className="app-user-label">
-                Вошли как: <strong>{user.username}</strong> ({user.role})
+              <span className="app-user-text">
+                Пользователь: {user.username} ({user.role})
               </span>
-              <button
-                className="btn btn-ghost btn-sm"
-                type="button"
-                onClick={handleLogout}
-              >
+              <button className="btn btn-primary" onClick={handleLogout}>
                 Выйти
               </button>
             </>
           ) : (
-            <>
-              <span className="app-user-label">Режим посетителя</span>
-              <button
-                className="btn btn-primary btn-sm"
-                type="button"
-                onClick={() => setShowLogin(true)}
-              >
-                Войти как сотрудник
-              </button>
-            </>
+            <span className="app-user-text">Режим посетителя</span>
           )}
         </div>
       </header>
 
       <main className="app-main">
-        <div className="board-shell">
-          <FlightsPage />
-        </div>
-      </main>
+        <Routes>
+          <Route
+            path="/login"
+            element={
+              user ? (
+                <Navigate to="/" replace />
+              ) : (
+                <LoginPage />
+              )
+            }
+          />
 
-      {showLogin && !user && (
-        <div className="modal-backdrop" onClick={() => setShowLogin(false)}>
-          <div
-            className="modal-panel"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <LoginPage onSuccess={handleLoginSuccess} />
-          </div>
-        </div>
-      )}
+          <Route
+            path="/"
+            element={
+              <PrivateRoute>
+                <FlightsPage />
+              </PrivateRoute>
+            }
+          />
+
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <AppShell />
+      </Router>
+    </AuthProvider>
   );
 }

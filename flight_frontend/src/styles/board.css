@@ -1,0 +1,139 @@
+.flight-row {
+  cursor: pointer;
+  transition: background 0.18s ease-out, transform 0.12s ease-out;
+}
+
+.flight-row:hover {
+  background: radial-gradient(circle at center,
+    rgba(37, 99, 235, 0.08),
+    rgba(15, 23, 42, 0.98));
+  transform: translateY(-1px);
+}
+.airport-select {
+  margin-left: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  background: rgba(15, 23, 42, 0.9);
+  color: var(--text-main);
+  font-size: 13px;
+  transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out,
+    background 0.2s ease-out;
+}
+
+.airport-select:focus {
+  outline: none;
+  border-color: rgba(59, 130, 246, 0.8);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3);
+  background: rgba(15, 23, 42, 0.98);
+}
+
+
+
+.status-departed {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #022c22;
+}
+.tab-icon {
+  margin-right: 6px;
+  font-size: 14px;
+}
+
+/* Фильтры табло */
+.board-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filter-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.filter-input {
+  min-width: 170px;
+  border-radius: 9px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  padding: 6px 8px;
+  font-size: 13px;
+  background: rgba(15, 23, 42, 0.96);
+  color: var(--text-main);
+}
+
+.filter-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.3);
+}
+
+/* Переключатели "Вылеты / Прилёты" */
+.board-modes {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.board-mode-btn {
+  border-radius: 999px;
+  padding: 6px 18px;
+  font-size: 14px;
+  border: none;
+  background: transparent;
+  color: #c8d4e0;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.board-mode-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.board-mode-btn.active {
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  color: #fff;
+  box-shadow:
+    0 0 0 1px rgba(56, 189, 248, 0.25),
+    0 8px 16px rgba(15, 76, 129, 0.45);
+}
+
+/* Заголовок табло */
+.board-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.board-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.board-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.board-title-airport {
+  margin-left: 8px;
+  font-size: 13px;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  text-transform: uppercase;
+  color: var(--accent-strong);
+  background: rgba(15, 23, 42, 0.9);
+}

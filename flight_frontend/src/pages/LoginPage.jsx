@@ -3,7 +3,7 @@ import { useState } from "react";
 import { login as apiLogin } from "../api/authApi.js";
 import { useAuth } from "../context/AuthContext.jsx";
 
-export default function LoginPage() {
+export default function LoginPage({ onSuccess }) {
   const { login } = useAuth();
   const [username, setUsername] = useState("admin");
   const [password, setPassword] = useState("");
@@ -16,8 +16,9 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const data = await apiLogin(username, password); // { token, user }
+      const data = await apiLogin(username, password);
       login(data.user, data.token);
+      if (onSuccess) onSuccess();
     } catch (err) {
       setError(err.message || "Ошибка входа");
     } finally {
@@ -26,38 +27,45 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="login-page" style={{ maxWidth: 400, margin: "40px auto" }}>
-      <h2>Вход в систему</h2>
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: 12 }}>
+    <div className="login-card">
+      <h2 className="login-title">Вход для сотрудников</h2>
+      <p className="login-subtitle">
+        Используйте корпоративный логин и пароль для доступа к управлению
+        рейсами.
+      </p>
+
+      <form className="login-form" onSubmit={handleSubmit}>
+        <div className="form-group">
           <label>
-            Логин:
+            Логин
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              style={{ width: "100%", padding: 8, marginTop: 4 }}
+              autoComplete="username"
             />
           </label>
         </div>
 
-        <div style={{ marginBottom: 12 }}>
+        <div className="form-group">
           <label>
-            Пароль:
+            Пароль
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              style={{ width: "100%", padding: 8, marginTop: 4 }}
+              autoComplete="current-password"
             />
           </label>
         </div>
 
-        {error && (
-          <div style={{ color: "red", marginBottom: 12 }}>{error}</div>
-        )}
+        {error && <div className="text-error">{error}</div>}
 
-        <button type="submit" disabled={loading} style={{ padding: "8px 16px" }}>
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={loading}
+        >
           {loading ? "Вход..." : "Войти"}
         </button>
       </form>

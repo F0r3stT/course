@@ -6,27 +6,28 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type PGRepository struct {
-	db *pgxpool.Pool
+type postgresRepository struct {
+	pool *pgxpool.Pool
 }
 
-func NewPGRepository(db *pgxpool.Pool) Repository {
-	return &PGRepository{db: db}
+// NewPostgresRepository — конструктор, который мы вызываем в main.go.
+func NewPostgresRepository(pool *pgxpool.Pool) Repository {
+	return &postgresRepository{pool: pool}
 }
 
-func (r *PGRepository) GetByUsername(ctx context.Context, username string) (*User, error) {
+func (r *postgresRepository) GetByUsername(ctx context.Context, username string) (*User, error) {
 	const query = `
-        SELECT id, username, password_hash, role
-        FROM users
-        WHERE username = $1
-        LIMIT 1;
-    `
+		SELECT id, username, password_hash, role, created_at
+		FROM users
+		WHERE username = $1
+	`
 
-	row := r.db.QueryRow(ctx, query, username)
+	row := r.pool.QueryRow(ctx, query, username)
 
 	var u User
-	if err := row.Scan(&u.ID, &u.Username, &u.PasswordHash, &u.Role); err != nil {
+	if err := row.Scan(&u.ID, &u.Username, &u.PasswordHash, &u.Role, &u.CreatedAt); err != nil {
 		return nil, err
 	}
+
 	return &u, nil
 }

@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
@@ -69,6 +70,27 @@ func (h *Handler) GetFlights(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 			return
 		}
+
+		// 1) длительность полёта
+		f.FlightDurationMinutes = int(f.ArrivalTime.Sub(f.DepartureTime).Minutes())
+
+		// 2) «живой» статус по времени
+		now := time.Now()
+		switch {
+		case now.Before(f.DepartureTime):
+			if f.Status != "cancelled" && f.Status != "delayed" {
+				f.Status = "scheduled"
+			}
+		case now.After(f.DepartureTime) && now.Before(f.ArrivalTime):
+			if f.Status != "cancelled" && f.Status != "delayed" {
+				f.Status = "in_air"
+			}
+		case now.After(f.ArrivalTime):
+			if f.Status != "cancelled" && f.Status != "delayed" {
+				f.Status = "landed"
+			}
+		}
+
 		flights = append(flights, f)
 	}
 
@@ -92,13 +114,14 @@ func (h *Handler) CreateFlight(c *gin.Context) {
 
 	depTime, arrTime, err := validateFlightRequest(
 		req.FlightNumber,
-		valueOrEmpty(req.AirlineCode),
+		req.AirlineCode,
 		req.DepartureAirport,
 		req.ArrivalAirport,
 		req.Status,
 		req.DepartureTime,
 		req.ArrivalTime,
 	)
+
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -132,6 +155,9 @@ func (h *Handler) CreateFlight(c *gin.Context) {
 		&newFlight.ArrivalTime,
 		&newFlight.Status,
 	)
+	newFlight.FlightDurationMinutes =
+		int(newFlight.ArrivalTime.Sub(newFlight.DepartureTime).Minutes())
+
 	if err != nil {
 		log.Printf("insert flight error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
@@ -144,13 +170,6 @@ func (h *Handler) CreateFlight(c *gin.Context) {
 		newFlight.ID, newFlight.FlightNumber, userID, userRole)
 
 	c.JSON(http.StatusCreated, newFlight)
-}
-
-func valueOrEmpty(s *string) string {
-	if s == nil {
-		return ""
-	}
-	return *s
 }
 
 // PUT /api/flights/:id — полное обновление рейса.
@@ -170,13 +189,14 @@ func (h *Handler) UpdateFlight(c *gin.Context) {
 
 	depTime, arrTime, err := validateFlightRequest(
 		req.FlightNumber,
-		valueOrEmpty(req.AirlineCode),
+		req.AirlineCode,
 		req.DepartureAirport,
 		req.ArrivalAirport,
 		req.Status,
 		req.DepartureTime,
 		req.ArrivalTime,
 	)
+
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -215,6 +235,8 @@ func (h *Handler) UpdateFlight(c *gin.Context) {
 		&updated.ArrivalTime,
 		&updated.Status,
 	)
+	updated.FlightDurationMinutes =
+		int(updated.ArrivalTime.Sub(updated.DepartureTime).Minutes())
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			c.JSON(http.StatusNotFound, gin.H{"error": "flight not found"})

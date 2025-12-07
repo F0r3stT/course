@@ -1,6 +1,6 @@
+// src/components/flights/FlightForm.jsx
 import { useEffect, useState } from "react";
 import { createFlight, updateFlight } from "../../api/flightsApi";
-
 
 const STATUS_OPTIONS = [
   { value: "scheduled", label: "По расписанию" },
@@ -11,278 +11,318 @@ const STATUS_OPTIONS = [
   { value: "landed", label: "Прибыл" },
 ];
 
-function FlightForm({
+export default function FlightForm({
   mode = "create",
   initialFlight = null,
-  onFlightCreated,
-  onFlightUpdated,
+  // из FlightsPage сейчас приходят именно эти имена:
+  onCreated,
+  onUpdated,
   onCancel,
+  selectedAirport,
 }) {
   const [form, setForm] = useState({
     flightNumber: "",
     airlineCode: "",
-    departureAirport: "",
+    airlineName: "",
+    aircraftType: "",
+    departureAirport: selectedAirport || "",
     arrivalAirport: "",
     departureTime: "",
     arrivalTime: "",
-    status: "",
+    status: "scheduled",
   });
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
 
-  // при переходе в режим редактирования заполняем форму
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  // Заполняем форму при редактировании / инициализации
   useEffect(() => {
     if (mode === "edit" && initialFlight) {
-  setForm({
-    flightNumber: initialFlight.flight_number,
-    airlineCode: initialFlight.airline_code || "", // если появится на бэке, подхватим
-    departureAirport: initialFlight.departure_airport,
-    arrivalAirport: initialFlight.arrival_airport,
-    departureTime: initialFlight.departure_time
-      ? new Date(initialFlight.departure_time).toISOString().slice(0, 16)
-      : "",
-    arrivalTime: initialFlight.arrival_time
-      ? new Date(initialFlight.arrival_time).toISOString().slice(0, 16)
-      : "",
-    status: initialFlight.status,
-  });
-}
-if (mode === "create") {
-  setForm({
-    flightNumber: "",
-    airlineCode: "",
-    departureAirport: "",
-    arrivalAirport: "",
-    departureTime: "",
-    arrivalTime: "",
-    status: "",
-  });
-}
+      setForm({
+        flightNumber: initialFlight.flight_number || "",
+        airlineCode: (initialFlight.airline_code || "").toUpperCase(),
+        airlineName: initialFlight.airline_name || "",
+        aircraftType: initialFlight.aircraft_type || "",
+        departureAirport: initialFlight.departure_airport || "",
+        arrivalAirport: initialFlight.arrival_airport || "",
+        departureTime: initialFlight.departure_time
+          ? new Date(initialFlight.departure_time).toISOString().slice(0, 16)
+          : "",
+        arrivalTime: initialFlight.arrival_time
+          ? new Date(initialFlight.arrival_time).toISOString().slice(0, 16)
+          : "",
+        status: initialFlight.status || "scheduled",
+      });
+    } else if (mode === "create") {
+      // при создании можно автоподставить выбранный аэропорт табло как аэропорт вылета
+      setForm((prev) => ({
+        ...prev,
+        departureAirport: selectedAirport || "",
+      }));
+    }
+  }, [mode, initialFlight, selectedAirport]);
 
-  }, [mode, initialFlight]);
-
-  
+  // универсальный onChange для обычных полей
   function handleChange(e) {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
-  function handleAirlineCodeChange(e) {
-  let value = e.target.value.toUpperCase();
-  if (value.length > 2) {
-    value = value.slice(0, 2);
+  // номер рейса — только цифры, 3–6 символов
+  function handleFlightNumberChange(e) {
+    const digits = e.target.value.replace(/\D/g, "").slice(0, 6);
+    setForm((prev) => ({ ...prev, flightNumber: digits }));
   }
-  setForm((prev) => ({ ...prev, airlineCode: value }));
-}
 
+  // код авиакомпании — 2 символа, верхний регистр
+  function handleAirlineCodeChange(e) {
+    let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    if (value.length > 2) {
+      value = value.slice(0, 2);
+    }
+    setForm((prev) => ({ ...prev, airlineCode: value }));
+  }
+
+  // IATA аэропортов — 3 буквы, верхний регистр
+  function handleIataChange(e) {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: value.toUpperCase().slice(0, 3),
+    }));
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setError(null);
+    setError("");
     setSubmitting(true);
 
     try {
+      if (!form.flightNumber ||
+          !form.airlineCode ||
+          !form.departureAirport ||
+          !form.arrivalAirport ||
+          !form.departureTime ||
+          !form.arrivalTime ||
+          !form.status) {
+        throw new Error("Заполните все обязательные поля");
+      }
+
+      if (form.airlineCode.length !== 2) {
+        throw new Error("Код авиакомпании должен состоять из 2 символов");
+      }
+
       if (mode === "create") {
-        const newFlight = await createFlight(form);
-        onFlightCreated && onFlightCreated(newFlight);
-        // сброс после создания
+        const created = await createFlight(form);
+        if (onCreated) onCreated(created);
+
+        // Сброс формы после успешного создания
         setForm({
           flightNumber: "",
-          departureAirport: "",
+          airlineCode: "",
+          airlineName: "",
+          aircraftType: "",
+          departureAirport: selectedAirport || "",
           arrivalAirport: "",
           departureTime: "",
           arrivalTime: "",
-          status: "",
+          status: "scheduled",
         });
       } else if (mode === "edit" && initialFlight) {
-        const updatedFlight = await updateFlight(initialFlight.id, form);
-        onFlightUpdated && onFlightUpdated(updatedFlight);
+        const updated = await updateFlight(initialFlight.id, form);
+        if (onUpdated) onUpdated(updated);
       }
     } catch (err) {
       console.error("Flight form submit error:", err);
-      setError(err.message);
+      setError(err.message || "Ошибка сохранения рейса");
     } finally {
       setSubmitting(false);
     }
   }
 
-  const airlineCode = (form.flightNumber || "").slice(0, 2).toUpperCase();
-
-
-  const submitLabel =
-    mode === "create" ? "Создать рейс" : "Сохранить изменения";
+  const submitLabel = mode === "create" ? "Создать рейс" : "Сохранить изменения";
 
   return (
-    <form onSubmit={handleSubmit} style={{ marginBottom: 24 }}>
-  {/* Верхняя строка: слева статус, справа номер рейса + аббревиатура */}
-  <div
-    style={{
-      display: "flex",
-      gap: "32px",
-      alignItems: "flex-start",
-      marginBottom: 16,
-      flexWrap: "wrap",
-    }}
-  >
-    {/* Левая колонка: статус */}
-    <div style={{ flex: 1, minWidth: 260 }}>
-      <label>
-        Статус:
-        <br />
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "6px",
-            marginTop: 4,
-            marginBottom: 4,
-          }}
-        >
-          {STATUS_OPTIONS.map((s) => (
-            <button
-              key={s.value}
-              type="button"
-              onClick={() =>
-                setForm((prev) => ({ ...prev, status: s.value }))
-              }
-              style={{
-                padding: "4px 8px",
-                borderRadius: 4,
-                border:
-                  form.status === s.value
-                    ? "2px solid #1976d2"
-                    : "1px solid #ccc",
-                backgroundColor:
-                  form.status === s.value ? "#e3f2fd" : "#f5f5f5",
-                cursor: "pointer",
-                fontSize: 12,
-              }}
-            >
-              {s.label}
-            </button>
-          ))}
+    <form onSubmit={handleSubmit} className="flight-form">
+      {/* Верхняя строка: слева статус, справа номер рейса + код авиакомпании */}
+      <div className="flight-form-row">
+        {/* Статус */}
+        <div className="flight-form-col">
+          <label className="flight-form-label">
+            Статус
+            <div className="status-buttons">
+              {STATUS_OPTIONS.map((s) => (
+                <button
+                  key={s.value}
+                  type="button"
+                  className={
+                    form.status === s.value
+                      ? "status-chip status-chip-active"
+                      : "status-chip"
+                  }
+                  onClick={() =>
+                    setForm((prev) => ({ ...prev, status: s.value }))
+                  }
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+            <small className="field-hint">
+              Текущий статус:{" "}
+              <strong>
+                {STATUS_OPTIONS.find((s) => s.value === form.status)?.label ||
+                  "не выбран"}
+              </strong>
+            </small>
+          </label>
         </div>
-        <small style={{ color: "#666" }}>
-          Текущий статус:{" "}
-          <strong>
-            {STATUS_OPTIONS.find((s) => s.value === form.status)?.label ||
-              "не выбран"}
-          </strong>
-        </small>
-      </label>
-    </div>
 
-    {/* Правая колонка: номер рейса и аббревиатура */}
-    <div style={{ flex: 1, minWidth: 260 }}>
-      <div style={{ marginBottom: 8 }}>
-        <label>
-          Номер рейса:
-          <br />
-          <input
-            type="text"
-            name="flightNumber"
-            value={form.flightNumber}
-            onChange={handleChange}
-            placeholder="Например, SU100"
-            style={{ width: "100%" }}
-          />
-        </label>
+        {/* Номер рейса + код авиакомпании */}
+        <div className="flight-form-col">
+          <div className="form-group">
+            <label className="flight-form-label">
+              Номер рейса (только цифры)
+              <input
+                type="text"
+                name="flightNumber"
+                value={form.flightNumber}
+                onChange={handleFlightNumberChange}
+                placeholder="Например, 1234"
+              />
+            </label>
+          </div>
+
+          <div className="form-group">
+            <label className="flight-form-label">
+              Код авиакомпании (2 символа)
+              <input
+                type="text"
+                name="airlineCode"
+                value={form.airlineCode}
+                onChange={handleAirlineCodeChange}
+                maxLength={2}
+                placeholder="SU, S7, EK..."
+              />
+            </label>
+            <small className="field-hint">
+              Например: SU, S7, BA, EK, QR и т.д.
+            </small>
+          </div>
+        </div>
       </div>
 
-      <div>
-        <label>
-          Авиакомпания (аббревиатура, 2 символа):
-          <br />
-          <input
-            type="text"
-            name="airlineCode"
-            value={form.airlineCode}
-            onChange={handleAirlineCodeChange}
-            maxLength={2}
-            style={{ width: "100%" }}
-          />
-        </label>
-        <small style={{ color: "#666" }}>
-          Введите код авиакомпании, например: SU, U6, S7 и т.д.
-        </small>
-      </div>
-    </div>
-  </div>
-
-      <div>
-        <label>
-          Аэропорт вылета:
-          <br />
-          <input
-            type="text"
-            name="departureAirport"
-            value={form.departureAirport}
-            onChange={handleChange}
-            placeholder="SVO"
-          />
-        </label>
+      {/* Блок: авиакомпания и тип самолёта */}
+      <div className="flight-form-row">
+        <div className="flight-form-col">
+          <div className="form-group">
+            <label className="flight-form-label">
+              Название авиакомпании
+              <input
+                type="text"
+                name="airlineName"
+                value={form.airlineName}
+                onChange={handleChange}
+                placeholder="S7 Airlines, Emirates, Aeroflot..."
+              />
+            </label>
+          </div>
+        </div>
+        <div className="flight-form-col">
+          <div className="form-group">
+            <label className="flight-form-label">
+              Тип самолёта
+              <input
+                type="text"
+                name="aircraftType"
+                value={form.aircraftType}
+                onChange={handleChange}
+                placeholder="Boeing 737-800, Airbus A320..."
+              />
+            </label>
+          </div>
+        </div>
       </div>
 
-      <div>
-        <label>
-          Аэропорт прилёта:
-          <br />
-          <input
-            type="text"
-            name="arrivalAirport"
-            value={form.arrivalAirport}
-            onChange={handleChange}
-            placeholder="LHR"
-          />
-        </label>
+      {/* Маршрут */}
+      <div className="flight-form-row">
+        <div className="flight-form-col">
+          <div className="form-group">
+            <label className="flight-form-label">
+              Аэропорт вылета (IATA)
+              <input
+                type="text"
+                name="departureAirport"
+                value={form.departureAirport}
+                onChange={handleIataChange}
+                placeholder="SVO"
+              />
+            </label>
+          </div>
+        </div>
+        <div className="flight-form-col">
+          <div className="form-group">
+            <label className="flight-form-label">
+              Аэропорт прилёта (IATA)
+              <input
+                type="text"
+                name="arrivalAirport"
+                value={form.arrivalAirport}
+                onChange={handleIataChange}
+                placeholder="LHR"
+              />
+            </label>
+          </div>
+        </div>
       </div>
 
-      <div>
-        <label>
-          Время вылета:
-          <br />
-          <input
-            type="datetime-local"
-            name="departureTime"
-            value={form.departureTime}
-            onChange={handleChange}
-          />
-        </label>
+      {/* Время вылета / прилёта */}
+      <div className="flight-form-row">
+        <div className="flight-form-col">
+          <div className="form-group">
+            <label className="flight-form-label">
+              Время вылета
+              <input
+                type="datetime-local"
+                name="departureTime"
+                value={form.departureTime}
+                onChange={handleChange}
+              />
+            </label>
+          </div>
+        </div>
+        <div className="flight-form-col">
+          <div className="form-group">
+            <label className="flight-form-label">
+              Время прилёта
+              <input
+                type="datetime-local"
+                name="arrivalTime"
+                value={form.arrivalTime}
+                onChange={handleChange}
+              />
+            </label>
+          </div>
+        </div>
       </div>
 
-      <div>
-        <label>
-          Время прилёта:
-          <br />
-          <input
-            type="datetime-local"
-            name="arrivalTime"
-            value={form.arrivalTime}
-            onChange={handleChange}
-          />
-        </label>
-      </div>
-
-      <div style={{ gridColumn: "1 / -1" }}>
-        <button type="submit" disabled={submitting}>
+      {/* Кнопки */}
+      <div className="flight-form-actions">
+        <button type="submit" className="btn btn-primary" disabled={submitting}>
           {submitting ? "Сохранение..." : submitLabel}
         </button>
         {mode === "edit" && onCancel && (
           <button
             type="button"
+            className="btn btn-ghost"
             onClick={onCancel}
-            style={{ marginLeft: 12 }}
             disabled={submitting}
           >
             Отмена
           </button>
         )}
-        {error && (
-          <span style={{ color: "red", marginLeft: 16 }}>Ошибка: {error}</span>
-        )}
+        {error && <span className="text-error">Ошибка: {error}</span>}
       </div>
     </form>
   );
 }
-
-export default FlightForm;

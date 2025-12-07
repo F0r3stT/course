@@ -2,11 +2,12 @@ package flights
 
 import (
 	"errors"
+	"regexp"
 	"strings"
 	"time"
 )
 
-// допустимые статусы рейса — синхронизированы с CHECK в БД (schema.sql)
+// допустимые статусы рейса
 var allowedStatuses = map[string]struct{}{
 	"scheduled": {},
 	"boarding":  {},
@@ -16,33 +17,33 @@ var allowedStatuses = map[string]struct{}{
 	"landed":    {},
 }
 
+var flightNumDigits = regexp.MustCompile(`^[0-9]{3,6}$`)
+var airlineCodeRe = regexp.MustCompile(`^[A-Z0-9]{2}$`)
+
 // validateFlightRequest — общая валидация для создания/обновления рейса.
-// На вход принимает DTO из запроса и возвращает готовые time.Time.
 func validateFlightRequest(
 	flightNumber, airlineCode, depAirport, arrAirport,
 	status, depTimeStr, arrTimeStr string,
 ) (time.Time, time.Time, error) {
 	flightNumber = strings.TrimSpace(flightNumber)
-	airlineCode = strings.TrimSpace(airlineCode)
+	airlineCode = strings.ToUpper(strings.TrimSpace(airlineCode))
 	depAirport = strings.ToUpper(strings.TrimSpace(depAirport))
 	arrAirport = strings.ToUpper(strings.TrimSpace(arrAirport))
 	status = strings.TrimSpace(status)
 
-	if flightNumber == "" {
-		return time.Time{}, time.Time{}, errors.New("номер рейса обязателен")
+	// номер рейса: только 3–6 цифр
+	if !flightNumDigits.MatchString(flightNumber) {
+		return time.Time{}, time.Time{}, errors.New("номер рейса должен содержать только 3–6 цифр")
 	}
-	if len(flightNumber) > 20 {
-		return time.Time{}, time.Time{}, errors.New("номер рейса слишком длинный")
+
+	// airline_code: либо пусто, либо 2 символа по regex
+	if airlineCode != "" && !airlineCodeRe.MatchString(airlineCode) {
+		return time.Time{}, time.Time{}, errors.New("код авиакомпании должен содержать 2 символа (буквы/цифры)")
 	}
 
 	// IATA-коды аэропортов
 	if len(depAirport) != 3 || len(arrAirport) != 3 {
 		return time.Time{}, time.Time{}, errors.New("IATA-коды аэропортов должны быть из 3 символов")
-	}
-
-	// airline_code: либо пусто, либо ровно 2 символа
-	if airlineCode != "" && len(airlineCode) != 2 {
-		return time.Time{}, time.Time{}, errors.New("код авиакомпании должен быть из 2 символов")
 	}
 
 	// статус
@@ -63,22 +64,18 @@ func validateFlightRequest(
 		return time.Time{}, time.Time{}, errors.New("неверный формат времени прилёта (ожидается RFC3339)")
 	}
 
-	// бизнес-правило: прилёт должен быть после вылета
 	if !arrTime.After(depTime) {
 		return time.Time{}, time.Time{}, errors.New("время прилёта должно быть позже вылета")
 	}
 
 	return depTime, arrTime, nil
 }
-
-// validateStatusOnly — валидация для PATCH /status
 func validateStatusOnly(status string) error {
 	status = strings.TrimSpace(status)
-	if status == "" {
-		return errors.New("статус обязателен")
-	}
+
 	if _, ok := allowedStatuses[status]; !ok {
 		return errors.New("недопустимый статус рейса")
 	}
+
 	return nil
 }

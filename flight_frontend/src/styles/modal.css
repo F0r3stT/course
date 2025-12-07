@@ -1,0 +1,77 @@
+.modal-panel {
+  width: 100%;
+  max-width: 520px;
+  background: rgba(15, 23, 42, 0.98);
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.9);
+  padding: 18px 20px 18px;
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.modal-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.modal-airline {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.modal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px 16px;
+}
+
+.modal-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.modal-value {
+  font-size: 13px;
+}
+
+.modal-status {
+  font-size: 13px;
+}
+
+/* Логин */
+.login-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.login-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.login-subtitle {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

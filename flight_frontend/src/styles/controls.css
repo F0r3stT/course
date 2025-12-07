@@ -1,0 +1,39 @@
+/* Кнопки */
+.btn {
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  padding: 6px 14px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.16s ease-out;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  color: #0b1120;
+  border-color: transparent;
+}
+
+.btn-primary:hover:enabled {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-muted);
+  border-color: rgba(148, 163, 184, 0.5);
+}
+
+.btn-ghost:hover:enabled {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-sm {
+  padding: 4px 10px;
+  font-size: 11px;
+}
