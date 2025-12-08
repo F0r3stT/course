@@ -1,95 +1,75 @@
-import React from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
+// src/App.jsx
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 
-import FlightsPage from "./pages/FlightsPage.jsx";
+import HomePage from "./pages/HomePage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
+import AnalyticsPage from "./pages/AnalyticsPage.jsx";
+import FlightsPage from "./pages/FlightsPage.jsx";
+
 import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
 
-// базовые стили
-import "./styles/layout.css";
-import "./styles/controls.css";
-import "./styles/table.css";
-import "./styles/modal.css";
-import "./App.css";
-
-function PrivateRoute({ children }) {
-  const { user } = useAuth();
-
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return children;
-}
-
-function AppShell() {
-  const { user, logout } = useAuth();
-
-  const handleLogout = () => {
-    logout();
-  };
+// Отдельный компонент, который знает про роуты и шапку
+function AppContent() {
+  const { user, logout } = useAuth() || {};
 
   return (
-    <div className="app-root">
-      <header className="app-header">
-        <div className="app-logo">FLY WINGS</div>
+    <BrowserRouter>
+      <div className="app">
+        <header className="app-header">
+          <div className="header-content">
+            <div className="logo">
+              <span className="logo-icon">✈</span>
+              <span>FlightBoard</span>
+            </div>
 
-        <div className="app-user-block">
-          {user ? (
-            <>
-              <span className="app-user-text">
-                Пользователь: {user.username} ({user.role})
-              </span>
-              <button className="btn btn-primary" onClick={handleLogout}>
-                Выйти
-              </button>
-            </>
-          ) : (
-            <span className="app-user-text">Режим посетителя</span>
-          )}
-        </div>
-      </header>
+            <nav className="nav">
+              <Link to="/">Главная</Link>
+              <Link to="/flights">Рейсы</Link>
+              {user && <Link to="/dashboard">Панель</Link>}
+              {user?.role === "admin" && <Link to="/analytics">Аналитика</Link>}
+            </nav>
 
-      <main className="app-main">
-        <Routes>
-          <Route
-            path="/login"
-            element={
-              user ? (
-                <Navigate to="/" replace />
+            <div>
+              {!user ? (
+                <Link to="/login">Войти</Link>
               ) : (
-                <LoginPage />
-              )
-            }
-          />
+                <>
+                  <span style={{ marginRight: "1rem" }}>
+                    {user.username} ({user.role})
+                  </span>
+                  <button type="button" onClick={logout}>
+                    Выйти
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </header>
 
-          <Route
-            path="/"
-            element={
-              <PrivateRoute>
-                <FlightsPage />
-              </PrivateRoute>
-            }
-          />
+        <main className="app-main">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
+            <Route path="/flights" element={<FlightsPage />} />
+          </Routes>
+        </main>
 
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </main>
-    </div>
+        <footer className="app-footer">
+          <p>FlightBoard © {new Date().getFullYear()}</p>
+        </footer>
+      </div>
+    </BrowserRouter>
   );
 }
 
+// Единственный default-компонент App
 export default function App() {
   return (
     <AuthProvider>
-      <Router>
-        <AppShell />
-      </Router>
+      <AppContent />
     </AuthProvider>
   );
 }

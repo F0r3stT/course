@@ -1,62 +1,123 @@
-// src/context/AuthContext.jsx
-import { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import { jwtDecode } from 'jwt-decode';
 
 const AuthContext = createContext(null);
 
-export function AuthProvider({ children }) {
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
+  return context;
+};
+
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
-  const [initialized, setInitialized] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  // Проверка токена при загрузке
   useEffect(() => {
-    // читаем сохранённые данные при первом рендере
-    const savedToken = localStorage.getItem("authToken");
-    const savedUser = localStorage.getItem("authUser");
+    const storedToken = localStorage.getItem('authToken');
+    const storedUser = localStorage.getItem('authUser');
 
-    if (savedToken && savedUser) {
+    if (storedToken && storedUser) {
       try {
-        setToken(savedToken);
-        setUser(JSON.parse(savedUser));
-      } catch {
-        // если вдруг формат сломан — очищаем
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("authUser");
+        const decoded = jwtDecode(storedToken);
+        
+        // Проверка срока действия токена
+        if (decoded.exp * 1000 > Date.now()) {
+          setToken(storedToken);
+          setUser(JSON.parse(storedUser));
+        } else {
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('authUser');
+        }
+      } catch (error) {
+        console.error('Error parsing stored auth data:', error);
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('authUser');
       }
     }
 
-    setInitialized(true);
+    setIsLoading(false);
   }, []);
 
-  const login = (userData, tokenValue) => {
-    setUser(userData);
-    setToken(tokenValue);
-    localStorage.setItem("authToken", tokenValue);
-    localStorage.setItem("authUser", JSON.stringify(userData));
-  };
+  const login = useCallback(async (username, password) => {
+    try {
+      setError(null);
+      
+      const response = await fetch('http://localhost:8080/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
 
-  const logout = () => {
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Login failed');
+      }
+
+      const data = await response.json();
+      
+      // Сохраняем данные
+      setUser(data.user);
+      setToken(data.token);
+      
+      // Сохраняем в localStorage
+      localStorage.setItem('authToken', data.token);
+      localStorage.setItem('authUser', JSON.stringify(data.user));
+      
+      return { success: true, data };
+    } catch (error) {
+      setError(error.message);
+      console.error('Login error:', error);
+      throw error;
+    }
+  }, []);
+
+  const logout = useCallback(() => {
     setUser(null);
     setToken(null);
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("authUser");
-  };
+    setError(null);
+    
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('authUser');
+    
+    window.location.href = '/';
+  }, []);
+
+  const hasPermission = useCallback((requiredRole) => {
+    if (!user) return false;
+    
+    const roleHierarchy = {
+      'viewer': 0,
+      'staff': 1,
+      'admin': 2,
+    };
+    
+    const userLevel = roleHierarchy[user.role] || 0;
+    const requiredLevel = roleHierarchy[requiredRole] || 0;
+    
+    return userLevel >= requiredLevel;
+  }, [user]);
 
   const value = {
     user,
     token,
-    isAuthenticated: !!token,
+    isLoading,
+    error,
     login,
     logout,
-    initialized,
+    hasPermission,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) {
-    throw new Error("useAuth must be used within AuthProvider");
-  }
-  return ctx;
-}
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+};

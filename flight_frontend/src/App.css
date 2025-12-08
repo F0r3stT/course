@@ -1,195 +1,558 @@
 :root {
-  --bg-gradient-from: #0f172a;
-  --bg-gradient-to: #020617;
-  --card-bg: rgba(15, 23, 42, 0.96);
-  --card-border: rgba(148, 163, 184, 0.35);
-  --accent: #38bdf8;
-  --accent-soft: rgba(56, 189, 248, 0.12);
-  --accent-strong: #0ea5e9;
-  --danger: #f97373;
-  --danger-soft: rgba(248, 113, 113, 0.12);
-  --text-main: #e5e7eb;
-  --text-muted: #9ca3af;
-  --table-header-bg: rgba(15, 23, 42, 0.94);
-  --table-row-hover: rgba(30, 64, 175, 0.3);
-  --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.85);
-  --radius-lg: 18px;
-  --radius-md: 12px;
-  --radius-pill: 999px;
+  --primary: #0066cc;
+  --primary-dark: #0052a3;
+  --primary-light: #4dabf7;
+  --secondary: #00a0e9;
+  --danger: #dc3545;
+  --success: #28a745;
+  --warning: #ffc107;
+  --text-primary: #333;
+  --text-secondary: #666;
+  --text-light: #888;
+  --bg-primary: #f8f9fa;
+  --bg-secondary: #fff;
+  --bg-dark: #343a40;
+  --border-color: #dee2e6;
+  --border-radius: 8px;
+  --shadow: 0 2px 10px rgba(0,0,0,0.1);
+  --transition: all 0.3s ease;
 }
 
-*,
-*::before,
-*::after {
+* {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
 }
 
 body {
-  margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-    "Segoe UI", sans-serif;
-  color: var(--text-main);
-  background:
-    radial-gradient(circle at top, #1f2937 0, var(--bg-gradient-from) 40%, var(--bg-gradient-to) 100%);
-  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background: var(--bg-primary);
 }
 
-
-.board-subtitle {
-  margin: 0;
-  font-size: 12px;
-  color: var(--text-muted);
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
 }
 
-/* Верхняя панель управляющих элементов */
-.board-controls {
+/* Header */
+.app-header {
+  background: var(--bg-secondary);
+  box-shadow: var(--shadow);
+  padding: 1rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--primary);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo:hover {
+  color: var(--primary-dark);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.nav a {
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: var(--transition);
+  font-weight: 500;
+}
+
+.nav a:hover {
+  color: var(--primary);
+}
+
+.user-info {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  padding: 4px 8px;
+  background: var(--bg-primary);
+  border-radius: var(--border-radius);
+}
+
+/* Buttons */
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius);
+  border: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: var(--transition);
+  font-weight: 500;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--primary);
+  color: var(--primary);
+}
+
+.btn-outline:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Main content */
+.app-main {
+  min-height: calc(100vh - 140px);
+}
+
+/* Home page */
+.home-page {
+  padding-bottom: 4rem;
+}
+
+.hero {
+  text-align: center;
+  padding: 4rem 0;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  color: white;
+  border-radius: 0 0 var(--border-radius) var(--border-radius);
+  margin-bottom: 3rem;
+}
+
+.hero h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.hero p {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+  opacity: 0.9;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+/* Features */
+.features {
+  padding: 2rem 0;
+}
+
+.features h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: var(--text-primary);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.feature {
+  background: var(--bg-secondary);
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+
+.feature:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.feature h3 {
+  color: var(--primary);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.feature p {
+  color: var(--text-secondary);
+}
+
+/* Loading */
+.loading {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  align-items: flex-end;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
 }
 
-
-/* Иконки самолёта */
-.plane-icon {
-  width: 14px;
-  height: 14px;
-  position: relative;
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
 }
 
-.plane-icon::before {
-  content: "✈";
-  font-size: 14px;
-  display: block;
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
-.plane-icon--depart::before {
-  transform: rotate(-10deg);
+/* Login Page */
+.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+  padding: 2rem;
 }
 
-.plane-icon--arrive::before {
-  transform: rotate(170deg);
+.login-container {
+  width: 100%;
+  max-width: 400px;
 }
 
-
-/* Тело табло */
-.board-body {
-  margin-top: 14px;
+.login-card {
+  background: var(--bg-secondary);
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
 }
 
-.board-empty,
-.board-error {
-  padding: 16px 14px;
-  border-radius: var(--radius-md);
-  font-size: 13px;
+.login-title {
+  text-align: center;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
 }
 
-.board-empty {
-  background: rgba(15, 23, 42, 0.9);
-  border: 1px dashed rgba(148, 163, 184, 0.5);
-  color: var(--text-muted);
+.login-subtitle {
+  text-align: center;
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
 }
 
-.board-error {
-  background: var(--danger-soft);
-  border: 1px solid rgba(248, 113, 113, 0.6);
-  color: var(--danger);
+.login-form {
+  margin-bottom: 1.5rem;
 }
 
-
-/* Панель администратора */
-.admin-card {
-  align-self: flex-start;
-}
-
-.admin-title {
-  margin: 0 0 6px;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.admin-subtitle {
-  margin: 0 0 16px;
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-/* Формы */
 .form-group {
-  margin-bottom: 10px;
+  margin-bottom: 1.5rem;
 }
 
 .form-group label {
-  font-size: 12px;
-  color: var(--text-muted);
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+  font-weight: 500;
 }
 
-.form-group input,
-.form-group select {
-  margin-top: 4px;
+.form-group input {
   width: 100%;
-  border-radius: 8px;
-  border: 1px solid rgba(148, 163, 184, 0.6);
-  padding: 6px 8px;
-  font-size: 13px;
-  background: rgba(15, 23, 42, 0.96);
-  color: var(--text-main);
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  transition: var(--transition);
 }
 
-.form-group input:focus,
-.form-group select:focus {
+.form-group input:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.3);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
 }
 
-/* Модалки */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(
-    circle at top,
-    rgba(15, 23, 42, 0.9) 0,
-    rgba(15, 23, 42, 0.96) 50%,
-    #020617 100%
-  );
-  backdrop-filter: blur(10px);
+.error-message {
+  background: #fee;
+  color: var(--danger);
+  padding: 0.75rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
+  border-left: 4px solid var(--danger);
+}
+
+.login-hint {
+  background: var(--bg-primary);
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.login-hint p {
+  margin-bottom: 0.5rem;
+}
+
+.login-hint strong {
+  color: var(--text-primary);
+}
+
+/* Footer */
+.app-footer {
+  background: var(--bg-dark);
+  color: white;
+  padding: 2rem 0;
+  text-align: center;
+  margin-top: 4rem;
+}
+
+.app-footer p {
+  opacity: 0.8;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .nav {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .hero h1 {
+    font-size: 2rem;
+  }
+  
+  .hero-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* Header для Layout */
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--primary);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  font-size: 1.8rem;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.nav a {
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: var(--transition);
+  font-weight: 500;
+}
+
+.nav a:hover {
+  color: var(--primary);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 12px;
+  background: var(--bg-primary);
+  border-radius: var(--border-radius);
+}
+
+.user-role-badge {
+  background: var(--primary);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.btn-small {
+  padding: 0.3rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+/* Footer для Layout */
+.app-footer {
+  background: var(--bg-dark);
+  color: white;
+  padding: 2rem 0;
+  margin-top: 4rem;
+  text-align: center;
+}
+
+.app-footer p {
+  margin: 0.5rem 0;
+  opacity: 0.8;
+}
+
+.footer-subtitle {
+  font-size: 0.9rem;
+  opacity: 0.6;
+}
+
+/* Airport Selector */
+.airport-selector {
+  background: var(--bg-secondary);
+  padding: 20px;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+}
+
+.selector-row {
+  display: flex;
+  gap: 15px;
+  align-items: flex-end;
+}
+
+.selector-group {
+  flex: 1;
+}
+
+.selector-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.selector-group input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+}
+
+/* Live Flight Counter */
+.live-flight-counter {
+  text-align: center;
+  padding: 20px;
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+}
+
+.live-flight-counter .counter {
+  font-size: 3rem;
+  font-weight: bold;
+  color: var(--primary);
+  margin: 10px 0;
+}
+
+/* Weather Widget */
+.weather-widget {
+  background: var(--bg-secondary);
+  padding: 20px;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+}
+
+.weather-info {
+  margin-top: 15px;
+}
+
+.weather-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.weather-item:last-child {
+  border-bottom: none;
+}
+
+/* Security Badge */
+.security-badge {
+  text-align: center;
+  padding: 20px;
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+}
+
+.badge-header {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 40;
-  animation: fadeIn 0.25s ease-out;
+  gap: 10px;
+  margin-bottom: 15px;
 }
 
-
-/* Текстовые стили */
-.text-error {
-  color: var(--danger);
-  font-size: 12px;
+.badge-icon {
+  font-size: 2rem;
 }
 
-.text-muted {
-  color: var(--text-muted);
-  font-size: 11px;
+.badge-level {
+  display: inline-block;
+  padding: 8px 20px;
+  background: var(--success);
+  color: white;
+  border-radius: var(--border-radius);
+  font-weight: bold;
+  margin: 10px 0;
 }
 
-/* Анимации */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
+/* Responsive */
+@media (max-width: 768px) {
+  .selector-row {
+    flex-direction: column;
+    gap: 10px;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
+  
+  .selector-group {
+    width: 100%;
   }
 }
