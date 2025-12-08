@@ -3,11 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext.jsx";
 import AirportSelector from "../components/flights/AirportSelector.jsx";
-import SecurityBadge from "../components/security/SecurityBadge.jsx";
 import WeatherWidget from "../components/common/WeatherWidget.jsx";
 
 import FlightsTable from "../components/flights/FlightsTable.jsx";
 import FlightDetailsModal from "../components/flights/FlightDetailsModal.jsx";
+
+import { AIRPORT_TO_CITY } from "../utils/airports.js"; // Импортируем из общего файла
 
 import "./HomePage.css";
 
@@ -31,8 +32,7 @@ export default function HomePage() {
   const [boardLoading, setBoardLoading] = useState(true);
 
   const [selectedFlight, setSelectedFlight] = useState(null);
-
-  // ---------- Функции загрузки данных (объявлены ДО useEffect) ----------
+  // ---------- Функции загрузки данных ----------
 
   const fetchStats = async () => {
     try {
@@ -62,7 +62,6 @@ export default function HomePage() {
         throw new Error(`Ошибка /api/flights: ${res.status} ${text}`);
       }
       const data = await res.json();
-      // Ожидаем массив; если вдруг приходит объект – берём поле flights
       const flights = Array.isArray(data) ? data : data.flights || [];
       setFeaturedFlights(flights);
     } catch (error) {
@@ -103,35 +102,34 @@ export default function HomePage() {
   // ---------- Инициализация и периодическое обновление ----------
 
   useEffect(() => {
-    // первый загрузочный запрос
     fetchStats();
     fetchFeaturedFlights();
     fetchBoardFlights();
 
-    // периодическое обновление
     const interval = setInterval(() => {
       fetchStats();
       fetchBoardFlights();
     }, 30000);
 
     return () => clearInterval(interval);
-  }, []); // зависимости пустые – эффекты только при монтировании/размонтировании
+  }, []);
 
   // ---------- Обработчики ----------
 
   const handleQuickSearch = (searchData) => {
-    navigate(`/flights?search=${encodeURIComponent(JSON.stringify(searchData))}`);
+    console.log("Поиск рейсов:", searchData);
+    // Фильтруем рейсы на главной странице
+    // Реализация будет в компоненте FlightsTable
   };
 
   // ---------- Рендер ----------
 
   return (
-    <div className="home-page">
-      {/* Герой-секция с анимированным фоном */}
+    <div className="home-page full-height">
+      {/* Герой-секция */}
       <section className="hero-section">
         <div className="hero-background">
           <div className="clouds"></div>
-          <div className="airplane-animation"></div>
           <div className="radar-scan"></div>
         </div>
 
@@ -154,10 +152,10 @@ export default function HomePage() {
                     <i className="icon-lock"></i>
                     Вход для сотрудников
                   </Link>
-                  <Link to="/flights" className="btn btn-outline btn-large">
+                  <button className="btn btn-outline btn-large">
                     <i className="icon-search"></i>
                     Поиск рейсов
-                  </Link>
+                  </button>
                 </>
               ) : (
                 <>
@@ -211,7 +209,7 @@ export default function HomePage() {
       {/* Быстрый поиск */}
       <section className="quick-search-section">
         <div className="container">
-          <h2 className="section-title">Быстрый поиск рейсов</h2>
+          <h2 className="section-title">Поиск рейсов</h2>
           <div className="search-card">
             <AirportSelector onSearch={handleQuickSearch} />
             <div className="search-tips">
@@ -229,80 +227,41 @@ export default function HomePage() {
       </section>
 
       {/* Табло рейсов */}
-        <section className="board-section">
-          <div className="container">
-            <div className="section-header">
-              <h2 className="section-title">Табло рейсов</h2>
-              <Link to="/flights" className="btn-link">
-                Все рейсы <i className="icon-arrow-right"></i>
-              </Link>
+      <section className="board-section">
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">Табло рейсов</h2>
+            <div className="last-updated">
+              Обновлено: {new Date().toLocaleTimeString("ru-RU")}
             </div>
-            
-                      <FlightsTable
-            flights={boardFlights}
-            loading={boardLoading}
-            onSelectFlight={setSelectedFlight}
-          />
+          </div>
 
-          {selectedFlight && (
-            <FlightDetailsModal
-              flight={selectedFlight}
-              onClose={() => setSelectedFlight(null)}
+          {boardLoading ? (
+            <div className="loading-state">
+              <div className="spinner"></div>
+              <p>Загрузка табло рейсов...</p>
+            </div>
+          ) : (
+            <FlightsTable
+              flights={boardFlights}
+              mode="departures"
+              isAdmin={false}
+              onSelectFlight={setSelectedFlight}
             />
           )}
 
-          </div>
-        </section>
-
-      {/* Безопасность и преимущества */}
-      <section className="features-section">
-        <div className="container">
-          <h2 className="section-title">Безопасность и надежность</h2>
-          <div className="features-grid">
-            <div className="feature-card">
-              <div className="feature-icon">🔐</div>
-              <h3>Защита данных</h3>
-              <p>
-                Шифрование всех данных, двухфакторная аутентификация, аудит
-                действий
-              </p>
-            </div>
-
-            <div className="feature-card">
-              <div className="feature-icon">⚡</div>
-              <h3>Реальное время</h3>
-              <p>
-                Обновление статусов рейсов в реальном времени с задержкой менее
-                5 секунд
-              </p>
-            </div>
-
-            <div className="feature-card">
-              <div className="feature-icon">📊</div>
-              <h3>Аналитика</h3>
-              <p>
-                Подробная статистика и аналитические отчеты для принятия
-                решений
-              </p>
-            </div>
-
-            <div className="feature-card">
-              <div className="feature-icon">🔔</div>
-              <h3>Уведомления</h3>
-              <p>Автоматические оповещения об изменениях статуса рейсов</p>
-            </div>
-          </div>
+          <FlightDetailsModal
+            flight={selectedFlight}
+            onClose={() => setSelectedFlight(null)}
+          />
         </div>
       </section>
 
-      {/* Последние рейсы */}
+      {/* Популярные направления */}
       <section className="recent-flights-section">
         <div className="container">
           <div className="section-header">
-            <h2 className="section-title">Недавние рейсы</h2>
-            <Link to="/flights" className="btn-link">
-              Все рейсы <i className="icon-arrow-right"></i>
-            </Link>
+            <h2 className="section-title">Популярные направления</h2>
           </div>
 
           {loading ? (
@@ -312,13 +271,16 @@ export default function HomePage() {
             </div>
           ) : (
             <div className="flights-grid">
-              {featuredFlights.slice(0, 6).map((flight) => (
-                <Link
-                  key={flight.id}
-                  to={`/flights/${flight.id}`}
-                  className="flight-card-link"
-                >
-                  <div className="flight-card">
+              {featuredFlights.slice(0, 4).map((flight) => {
+                const departureCity = AIRPORT_TO_CITY[flight.departure_airport] || flight.departure_airport;
+                const arrivalCity = AIRPORT_TO_CITY[flight.arrival_airport] || flight.arrival_airport;
+                
+                return (
+                  <div
+                    key={flight.id}
+                    className="flight-card"
+                    onClick={() => setSelectedFlight(flight)}
+                  >
                     <div className="flight-header">
                       <span className="flight-number">
                         {flight.flight_number}
@@ -335,11 +297,9 @@ export default function HomePage() {
                         <span className="airport-code">
                           {flight.departure_airport}
                         </span>
-                        <span className="city">{flight.departure_city}</span>
+                        <span className="city">{departureCity}</span>
                         <span className="time">
-                          {new Date(
-                            flight.departure_time
-                          ).toLocaleTimeString([], {
+                          {new Date(flight.departure_time).toLocaleTimeString([], {
                             hour: "2-digit",
                             minute: "2-digit",
                           })}
@@ -355,11 +315,9 @@ export default function HomePage() {
                         <span className="airport-code">
                           {flight.arrival_airport}
                         </span>
-                        <span className="city">{flight.arrival_city}</span>
+                        <span className="city">{arrivalCity}</span>
                         <span className="time">
-                          {new Date(
-                            flight.arrival_time
-                          ).toLocaleTimeString([], {
+                          {new Date(flight.arrival_time).toLocaleTimeString([], {
                             hour: "2-digit",
                             minute: "2-digit",
                           })}
@@ -368,19 +326,15 @@ export default function HomePage() {
                     </div>
 
                     <div className="flight-footer">
-                      <span className="airline">{flight.airline_name}</span>
+                      <span className="airline">{flight.airline_name || "Авиакомпания не указана"}</span>
                       <span className="duration">
-                        {Math.floor(
-                          flight.flight_duration_minutes / 60
-                        )}
-                        ч{" "}
-                        {flight.flight_duration_minutes % 60}
-                        м
+                        {Math.floor(flight.flight_duration_minutes / 60)}ч{" "}
+                        {flight.flight_duration_minutes % 60}м
                       </span>
                     </div>
                   </div>
-                </Link>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -389,7 +343,6 @@ export default function HomePage() {
       {/* Информация о системе */}
       <section className="system-info-section">
         <div className="container">
-          <SecurityBadge />
           <WeatherWidget />
 
           <div className="system-status">

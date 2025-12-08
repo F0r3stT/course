@@ -5,17 +5,15 @@ import HomePage from "./pages/HomePage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import AnalyticsPage from "./pages/AnalyticsPage.jsx";
-import FlightsPage from "./pages/FlightsPage.jsx";
 
 import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
 
-// Отдельный компонент, который знает про роуты и шапку
 function AppContent() {
   const { user, logout } = useAuth() || {};
 
   return (
     <BrowserRouter>
-      <div className="app">
+      <div className="app full-height">
         <header className="app-header">
           <div className="header-content">
             <div className="logo">
@@ -24,24 +22,27 @@ function AppContent() {
             </div>
 
             <nav className="nav">
-              <Link to="/">Главная</Link>
-              <Link to="/flights">Рейсы</Link>
               {user && <Link to="/dashboard">Панель</Link>}
               {user?.role === "admin" && <Link to="/analytics">Аналитика</Link>}
             </nav>
 
             <div>
               {!user ? (
-                <Link to="/login">Войти</Link>
+                <Link to="/login" className="btn btn-primary">
+                  Войти
+                </Link>
               ) : (
-                <>
-                  <span style={{ marginRight: "1rem" }}>
-                    {user.username} ({user.role})
-                  </span>
-                  <button type="button" onClick={logout}>
+                <div className="user-section">
+                  <span className="user-name">{user.username}</span>
+                  <span className="user-role">({user.role})</span>
+                  <button 
+                    type="button" 
+                    onClick={logout}
+                    className="btn-logout"
+                  >
                     Выйти
                   </button>
-                </>
+                </div>
               )}
             </div>
           </div>
@@ -53,19 +54,18 @@ function AppContent() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
-            <Route path="/flights" element={<FlightsPage />} />
           </Routes>
         </main>
 
         <footer className="app-footer">
           <p>FlightBoard © {new Date().getFullYear()}</p>
+          <p className="footer-subtitle">Система управления авиарейсами</p>
         </footer>
       </div>
     </BrowserRouter>
   );
 }
 
-// Единственный default-компонент App
 export default function App() {
   return (
     <AuthProvider>

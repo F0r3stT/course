@@ -556,3 +556,101 @@ body {
     width: 100%;
   }
 }
+
+/* src/App.css - добавлю в существующие стили */
+.app.full-height {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main {
+  flex: 1;
+}
+
+/* Убираем анимации при наведении */
+.btn, .btn-large, .btn-primary, .btn-outline {
+  transition: none;
+}
+
+.btn:hover, .btn-large:hover, .btn-primary:hover, .btn-outline:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.flight-card:hover,
+.stat-card:hover,
+.feature-card:hover,
+.info-card:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Обновляем стили шапки */
+.app-header {
+  background: var(--bg-secondary);
+  box-shadow: var(--shadow);
+  padding: 1rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--primary);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.nav a {
+  text-decoration: none;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.user-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-name {
+  font-weight: 600;
+}
+
+.user-role {
+  background: var(--primary-light);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+}
+
+.btn-logout {
+  padding: 6px 12px;
+  background: var(--danger);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-size: 0.9rem;
+}

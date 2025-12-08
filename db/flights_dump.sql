@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict h9ALxELJ7s24Rp9APEeRhDTRTh6UAem1L9rZQyfRzPrg5eAHrGa99KxxhRC4uow
+\restrict fFlUWPmRMVCgH8NZUoGuzBfSdUoKGW7hx9IW2yBTaevvYx9tbXgVgHSVLQZgFs5
 
 -- Dumped from database version 16.11 (Ubuntu 16.11-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.11 (Ubuntu 16.11-0ubuntu0.24.04.1)
@@ -31,10 +31,10 @@ COPY public.airlines (code, name) FROM stdin;
 --
 
 COPY public.flights (id, flight_number, airline_code, departure_airport, arrival_airport, departure_time, arrival_time, status, aircraft_type, gate_sector, airline_name) FROM stdin;
-13	2425	\N	NUD	SVO	2025-12-05 22:23:00+07	2025-12-06 22:23:00+07	delayed	\N	\N	\N
 14	5324	\N	SVO	TOM	2025-12-07 06:07:00+07	2025-12-07 15:07:00+07	scheduled	\N	\N	\N
 15	4342	\N	SVO	TOM	2025-12-07 07:20:00+07	2025-12-07 15:20:00+07	delayed	\N	\N	\N
 16	56823	\N	DME	VKO	2025-12-06 11:22:00+07	2025-12-06 17:22:00+07	scheduled	\N	\N	\N
+13	2425	\N	NUD	SVO	2025-12-05 22:23:00+07	2025-12-06 22:23:00+07	landed	\N	\N	\N
 \.
 
 
@@ -65,5 +65,5 @@ SELECT pg_catalog.setval('public.users_id_seq', 1, true);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict h9ALxELJ7s24Rp9APEeRhDTRTh6UAem1L9rZQyfRzPrg5eAHrGa99KxxhRC4uow
+\unrestrict fFlUWPmRMVCgH8NZUoGuzBfSdUoKGW7hx9IW2yBTaevvYx9tbXgVgHSVLQZgFs5
 

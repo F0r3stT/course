@@ -1,15 +1,15 @@
-.home-page {
+/* src/pages/HomePage.css */
+.home-page.full-height {
   min-height: 100vh;
 }
 
-/* Герой секция */
+/* Герой секция - убираем анимации */
 .hero-section {
   position: relative;
-  padding: 80px 0;
-  background: var(--sky-gradient);
+  padding: 60px 0;
+  background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
   overflow: hidden;
-  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
-  margin-bottom: 60px;
+  margin-bottom: 40px;
 }
 
 .hero-background {
@@ -26,22 +26,7 @@
   width: 100%;
   height: 100%;
   background: url('/clouds.svg') repeat-x;
-  animation: cloudMove 60s linear infinite;
   opacity: 0.1;
-}
-
-.airplane-animation {
-  position: absolute;
-  top: 20%;
-  left: -100px;
-  animation: airplaneFly 20s linear infinite;
-}
-
-.airplane-animation::before {
-  content: "✈";
-  font-size: 40px;
-  color: white;
-  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
 }
 
 .radar-scan {
@@ -54,18 +39,6 @@
   border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
-.radar-scan::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 2px;
-  height: 50%;
-  background: linear-gradient(to bottom, transparent, #00ff88, transparent);
-  transform-origin: bottom center;
-  animation: radarScan 4s linear infinite;
-}
-
 .hero-content {
   position: relative;
   z-index: 2;
@@ -74,7 +47,7 @@
   padding: 0 20px;
   display: grid;
   grid-template-columns: 1fr 400px;
-  gap: 60px;
+  gap: 40px;
   align-items: center;
 }
 
@@ -83,38 +56,29 @@
 }
 
 .hero-title {
-  font-size: 3.5rem;
+  font-size: 2.5rem;
   font-weight: 800;
   line-height: 1.2;
   margin-bottom: 20px;
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #00a0e9, #00ff88);
+  background: linear-gradient(135deg, #ffffff, #e0e7ff);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  display: inline-block;
-}
-
-/* Альтернатива для браузеров без поддержки */
-@supports not (-webkit-background-clip: text) {
-  .gradient-text {
-    background: none;
-    color: #00a0e9;
-  }
 }
 
 .hero-title .subtitle {
   display: block;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 400;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.9);
   margin-top: 10px;
 }
 
 .hero-description {
-  font-size: 1.1rem;
+  font-size: 1rem;
   line-height: 1.6;
   margin-bottom: 30px;
   color: rgba(255, 255, 255, 0.9);
@@ -123,92 +87,73 @@
 
 .hero-actions {
   display: flex;
-  gap: 20px;
+  gap: 16px;
   margin-bottom: 40px;
 }
 
 .btn-large {
-  padding: 16px 32px;
-  font-size: 1.1rem;
-  border-radius: var(--radius-full);
+  padding: 14px 28px;
+  font-size: 1rem;
+  border-radius: var(--border-radius);
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  transition: all var(--transition-normal);
+  gap: 8px;
 }
 
 .btn-primary.btn-large {
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  background: white;
   border: none;
-  color: white;
-  box-shadow: var(--glow);
-}
-
-.btn-primary.btn-large:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--hover-shadow);
+  color: #1d4ed8;
 }
 
 .btn-outline.btn-large {
   background: transparent;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid white;
   color: white;
-}
-
-.btn-outline.btn-large:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: white;
 }
 
 /* Статистика */
 .hero-stats {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
-  border-radius: var(--radius-lg);
-  padding: 30px;
+  border-radius: var(--border-radius);
+  padding: 24px;
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 16px;
 }
 
 .stat-card {
   text-align: center;
-  padding: 20px;
+  padding: 16px;
   background: rgba(255, 255, 255, 0.05);
-  border-radius: var(--radius-md);
-  transition: transform var(--transition-normal);
-}
-
-.stat-card:hover {
-  transform: translateY(-5px);
-  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--border-radius);
 }
 
 .stat-icon {
-  font-size: 2rem;
-  margin-bottom: 10px;
-  opacity: 0.8;
+  font-size: 1.5rem;
+  margin-bottom: 8px;
 }
 
 .stat-value {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: white;
-  margin-bottom: 5px;
+  margin-bottom: 4px;
 }
 
 .stat-label {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.7);
 }
 
 /* Быстрый поиск */
 .quick-search-section {
-  padding: 60px 0;
+  padding: 40px 0;
 }
 
 .container {
@@ -218,26 +163,26 @@
 }
 
 .section-title {
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 700;
-  margin-bottom: 30px;
+  margin-bottom: 24px;
   color: var(--text-primary);
 }
 
 .search-card {
   background: var(--bg-secondary);
-  border-radius: var(--radius-lg);
-  padding: 40px;
-  box-shadow: var(--card-shadow);
+  border-radius: var(--border-radius);
+  padding: 32px;
+  box-shadow: var(--shadow);
   border: 1px solid var(--border-color);
 }
 
 .search-tips {
-  margin-top: 30px;
-  padding: 20px;
-  background: var(--accent-soft);
-  border-radius: var(--radius-md);
-  border-left: 4px solid var(--accent);
+  margin-top: 24px;
+  padding: 16px;
+  background: var(--bg-primary);
+  border-radius: var(--border-radius);
+  border-left: 4px solid var(--primary);
 }
 
 .search-tips p {
@@ -254,73 +199,21 @@
   color: var(--text-secondary);
 }
 
-/* Особенности */
-.features-section {
-  padding: 60px 0;
-  background: linear-gradient(to bottom, var(--bg-primary), transparent);
-}
-
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 30px;
-}
-
-.feature-card {
-  background: var(--bg-secondary);
-  border-radius: var(--radius-lg);
-  padding: 30px;
-  text-align: center;
-  transition: all var(--transition-normal);
-  border: 1px solid var(--border-color);
-}
-
-.feature-card:hover {
-  transform: translateY(-10px);
-  box-shadow: var(--hover-shadow);
-  border-color: var(--primary-light);
-}
-
-.feature-icon {
-  font-size: 3rem;
-  margin-bottom: 20px;
-}
-
-.feature-card h3 {
-  font-size: 1.3rem;
-  margin-bottom: 15px;
-  color: var(--text-primary);
-}
-
-.feature-card p {
-  color: var(--text-secondary);
-  line-height: 1.6;
-}
-
-/* Последние рейсы */
-.recent-flights-section {
-  padding: 60px 0;
+/* Табло рейсов */
+.board-section {
+  padding: 40px 0;
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 24px;
 }
 
-.btn-link {
-  color: var(--primary);
-  text-decoration: none;
-  font-weight: 500;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  transition: color var(--transition-fast);
-}
-
-.btn-link:hover {
-  color: var(--primary-dark);
+.last-updated {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
 }
 
 .loading-state {
@@ -338,76 +231,59 @@
   margin: 0 auto 20px;
 }
 
-.flights-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 20px;
+/* Последние рейсы */
+.recent-flights-section {
+  padding: 40px 0;
+  background: var(--bg-primary);
 }
 
-.flight-card-link {
-  text-decoration: none;
-  color: inherit;
+.flights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
 }
 
 .flight-card {
   background: var(--bg-secondary);
-  border-radius: var(--radius-lg);
+  border-radius: var(--border-radius);
   padding: 20px;
   border: 1px solid var(--border-color);
-  transition: all var(--transition-normal);
-  position: relative;
-  overflow: hidden;
-}
-
-.flight-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--hover-shadow);
-  border-color: var(--primary-light);
-}
-
-.flight-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  cursor: pointer;
 }
 
 .flight-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .flight-number {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--primary);
 }
 
 .flight-status {
   padding: 4px 12px;
-  border-radius: var(--radius-full);
+  border-radius: var(--border-radius);
   font-size: 0.85rem;
   font-weight: 500;
 }
 
-.status-scheduled { background: var(--info); color: white; }
-.status-boarding { background: var(--warning); color: black; }
-.status-delayed { background: var(--danger); color: white; }
-.status-cancelled { background: #6c757d; color: white; }
-.status-in_air { background: var(--success); color: white; }
-.status-landed { background: var(--primary); color: white; }
+.status-scheduled { background: #dcfce7; color: #166534; }
+.status-boarding { background: #fef3c7; color: #92400e; }
+.status-delayed { background: #fef3c7; color: #92400e; }
+.status-cancelled { background: #fee2e2; color: #991b1b; }
+.status-in_air { background: #dbeafe; color: #1e40af; }
+.status-landed { background: #ede9fe; color: #5b21b6; }
 
 .flight-route {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  gap: 15px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .route-segment {
@@ -416,22 +292,22 @@
 
 .airport-code {
   display: block;
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 5px;
+  margin-bottom: 4px;
 }
 
 .city {
   display: block;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--text-secondary);
-  margin-bottom: 5px;
+  margin-bottom: 4px;
 }
 
 .time {
   display: block;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 500;
   color: var(--text-primary);
 }
@@ -439,7 +315,6 @@
 .route-line {
   position: relative;
   height: 2px;
-  background: var(--border-color);
 }
 
 .route-line .line {
@@ -457,7 +332,6 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 1.2rem;
   background: var(--bg-secondary);
   padding: 0 10px;
 }
@@ -466,7 +340,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 15px;
+  padding-top: 16px;
   border-top: 1px solid var(--border-color);
   color: var(--text-secondary);
   font-size: 0.9rem;
@@ -489,7 +363,7 @@
 .system-status {
   background: var(--bg-secondary);
   padding: 20px;
-  border-radius: var(--radius-md);
+  border-radius: var(--border-radius);
   border: 1px solid var(--border-color);
 }
 
@@ -513,17 +387,9 @@
 
 .status-ok .status-dot {
   background: var(--success);
-  box-shadow: 0 0 10px var(--success);
-  animation: pulse 2s infinite;
 }
 
-/* Анимации */
-@keyframes airplaneFly {
-  0% { transform: translateX(-100px) translateY(0); }
-  50% { transform: translateX(calc(100vw + 100px)) translateY(-50px); }
-  100% { transform: translateX(calc(100vw + 100px)) translateY(-50px); }
-}
-
+/* Анимация спиннера */
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
@@ -532,11 +398,11 @@
 @media (max-width: 768px) {
   .hero-content {
     grid-template-columns: 1fr;
-    gap: 40px;
+    gap: 30px;
   }
   
   .hero-title {
-    font-size: 2.5rem;
+    font-size: 2rem;
   }
   
   .hero-actions {
@@ -551,7 +417,7 @@
     grid-template-columns: 1fr;
   }
   
-  .features-grid {
+  .system-info-section .container {
     grid-template-columns: 1fr;
   }
 }

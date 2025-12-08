@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict 2nDELsf80t1llwJfEUQWZFAbZTJlrpjONWoXTSaHcSTkQky0Rs2DLl8CbKox5L3
+\restrict PdnS5xRe6uKCVjeVyb1AW8q5XQyMkKtwJ78ub7NXPlPn2IPCWJX8zaJUV0Rwfw4
 
 -- Dumped from database version 16.11 (Ubuntu 16.11-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.11 (Ubuntu 16.11-0ubuntu0.24.04.1)
@@ -54,7 +54,7 @@ CREATE TABLE public.flights (
     CONSTRAINT flights_arr_iata CHECK ((length((arrival_airport)::text) = 3)),
     CONSTRAINT flights_dep_iata CHECK ((length((departure_airport)::text) = 3)),
     CONSTRAINT flights_flight_number_digits CHECK (((flight_number)::text ~ '^[0-9]{3,6}$'::text)),
-    CONSTRAINT flights_status_check CHECK (((status)::text = ANY ((ARRAY['scheduled'::character varying, 'boarding'::character varying, 'delayed'::character varying, 'cancelled'::character varying, 'in_air'::character varying, 'landed'::character varying])::text[])))
+    CONSTRAINT flights_status_check CHECK (((status)::text = ANY (ARRAY[('scheduled'::character varying)::text, ('boarding'::character varying)::text, ('delayed'::character varying)::text, ('cancelled'::character varying)::text, ('in_air'::character varying)::text, ('landed'::character varying)::text])))
 );
 
 
@@ -84,7 +84,7 @@ CREATE TABLE public.users (
     password_hash character varying(255) NOT NULL,
     role character varying(20) NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT users_role_check CHECK (((role)::text = ANY ((ARRAY['admin'::character varying, 'operator'::character varying, 'viewer'::character varying])::text[])))
+    CONSTRAINT users_role_check CHECK (((role)::text = ANY (ARRAY[('admin'::character varying)::text, ('operator'::character varying)::text, ('viewer'::character varying)::text])))
 );
 
 
@@ -205,5 +205,5 @@ GRANT SELECT ON TABLE public.users TO flights_analytics;
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 2nDELsf80t1llwJfEUQWZFAbZTJlrpjONWoXTSaHcSTkQky0Rs2DLl8CbKox5L3
+\unrestrict PdnS5xRe6uKCVjeVyb1AW8q5XQyMkKtwJ78ub7NXPlPn2IPCWJX8zaJUV0Rwfw4
 
