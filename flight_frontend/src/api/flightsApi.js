@@ -44,7 +44,7 @@ export async function createFlight(flightData) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+      'Authorization': `Bearer ${localStorage.getItem('authToken') || 'mock-token'}`
     },
     body: JSON.stringify(flightData)
   });

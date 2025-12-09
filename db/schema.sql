@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict PdnS5xRe6uKCVjeVyb1AW8q5XQyMkKtwJ78ub7NXPlPn2IPCWJX8zaJUV0Rwfw4
+\restrict MYTMewPcvqe6a2xSqQlGTs6u5mV5cI1fAndy48gRBg4zgfXbe2hatm9ObvSBlQd
 
 -- Dumped from database version 16.11 (Ubuntu 16.11-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.11 (Ubuntu 16.11-0ubuntu0.24.04.1)
@@ -23,7 +23,7 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- Name: airlines; Type: TABLE; Schema: public; Owner: postgres
+-- Name: airlines; Type: TABLE; Schema: public; Owner: flights_user
 --
 
 CREATE TABLE public.airlines (
@@ -32,7 +32,7 @@ CREATE TABLE public.airlines (
 );
 
 
-ALTER TABLE public.airlines OWNER TO postgres;
+ALTER TABLE public.airlines OWNER TO flights_user;
 
 --
 -- Name: flights; Type: TABLE; Schema: public; Owner: flights_user
@@ -105,7 +105,7 @@ ALTER TABLE public.users ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
 
 
 --
--- Name: airlines airlines_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: airlines airlines_pkey; Type: CONSTRAINT; Schema: public; Owner: flights_user
 --
 
 ALTER TABLE ONLY public.airlines
@@ -181,13 +181,6 @@ GRANT USAGE ON SCHEMA public TO flights_analytics;
 
 
 --
--- Name: TABLE airlines; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE public.airlines TO flights_user;
-
-
---
 -- Name: TABLE flights; Type: ACL; Schema: public; Owner: flights_user
 --
 
@@ -205,5 +198,5 @@ GRANT SELECT ON TABLE public.users TO flights_analytics;
 -- PostgreSQL database dump complete
 --
 
-\unrestrict PdnS5xRe6uKCVjeVyb1AW8q5XQyMkKtwJ78ub7NXPlPn2IPCWJX8zaJUV0Rwfw4
+\unrestrict MYTMewPcvqe6a2xSqQlGTs6u5mV5cI1fAndy48gRBg4zgfXbe2hatm9ObvSBlQd
 

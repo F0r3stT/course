@@ -357,3 +357,57 @@
     display: none;
   }
 }
+.airline-cell .airline-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 120px;
+}
+
+.airline-code {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 600;
+  font-size: 12px;
+  width: fit-content;
+  min-width: 40px;
+}
+
+.airline-name {
+  font-size: 13px;
+  color: #4b5563;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.aircraft-cell {
+  font-size: 13px;
+  color: #374151;
+  min-width: 120px;
+}
+
+.city-cell .city-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 100px;
+}
+
+.airport-code {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+  text-transform: uppercase;
+}
+
+.city-name {
+  font-size: 12px;
+  color: #6b7280;
+}

@@ -1,5 +1,6 @@
 // src/components/flights/FlightDetailsModal.jsx
 import React from "react";
+import { getCityByAirportCode } from "../../utils/airports.js";
 
 const STATUS_LABELS = {
   scheduled: "По расписанию",
@@ -63,6 +64,9 @@ function formatDuration(departure, arrival) {
 export default function FlightDetailsModal({ flight, onClose }) {
   if (!flight) return null;
 
+   const departureCity = getCityByAirportCode(flight.departure_airport);
+  const arrivalCity = getCityByAirportCode(flight.arrival_airport);
+
   const airlineCode = (flight.airline_code || "").slice(0, 2).toUpperCase();
 
   const airlineName =
@@ -112,7 +116,8 @@ export default function FlightDetailsModal({ flight, onClose }) {
           <div className="modal-block">
             <div className="modal-label">Маршрут</div>
             <div className="modal-value">
-              {flight.departure_airport} → {flight.arrival_airport}
+              {departureCity} ({flight.departure_airport}) →{" "}
+      {arrivalCity} ({flight.arrival_airport})
             </div>
           </div>
 

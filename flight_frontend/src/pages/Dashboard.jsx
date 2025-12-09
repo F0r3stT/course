@@ -1,6 +1,7 @@
 // src/pages/Dashboard.jsx
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
+import CreateFlightTab from "../components/flights/CreateFlightTab.jsx";
 import {
   fetchFlights,
   fetchAirlines,
@@ -16,8 +17,10 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("flights");
   const [statusUpdatingId, setStatusUpdatingId] = useState(null);
 
-  useEffect(() => {
+    useEffect(() => {
     loadData();
+    const interval = setInterval(loadData, 30000); // каждые 30 секунд
+    return () => clearInterval(interval);
   }, []);
 
   async function loadData() {
@@ -95,22 +98,16 @@ export default function Dashboard() {
 
         {/* TABS */}
         <nav className="tabs">
-          <button
-            className={`tab ${activeTab === "flights" ? "active" : ""}`}
-            onClick={() => setActiveTab("flights")}
-          >
+          <button className={`tab ${activeTab === "flights" ? "active" : ""}`} onClick={() => setActiveTab("flights")}>
             ✈ Все рейсы
           </button>
-          <button
-            className={`tab ${activeTab === "airlines" ? "active" : ""}`}
-            onClick={() => setActiveTab("airlines")}
-          >
+          <button className={`tab ${activeTab === "airlines" ? "active" : ""}`} onClick={() => setActiveTab("airlines")}>
             🏢 Авиакомпании
           </button>
-          <button
-            className={`tab ${activeTab === "stats" ? "active" : ""}`}
-            onClick={() => setActiveTab("stats")}
-          >
+          <button className={`tab ${activeTab === "create" ? "active" : ""}`} onClick={() => setActiveTab("create")}>
+            ➕ Добавить рейс
+          </button>
+          <button className={`tab ${activeTab === "stats" ? "active" : ""}`} onClick={() => setActiveTab("stats")}>
             📊 Статистика
           </button>
         </nav>
@@ -157,12 +154,12 @@ export default function Dashboard() {
 
                     <div className="table-cell time">
                       <div className="departure">
-                        {formatTime(flight.departure_time)}
+                        Вылет: {formatTime(flight.departure_time)}
                       </div>
-                      <div className="duration">
-                        {flight.flight_duration_minutes} мин
+                      <div className="arrival">
+                        Прилёт: {formatTime(flight.arrival_time)}
                       </div>
-                    </div>
+                        </div>
 
                     <div className="table-cell status">
                       <span
@@ -255,6 +252,14 @@ export default function Dashboard() {
               })}
             </div>
           </section>
+          <section className={`tab-panel ${activeTab === "create" ? "active" : "hidden"}`}>
+          <CreateFlightTab onFlightCreated={(newFlight) => {
+            // Обновляем список рейсов после создания
+            setFlights(prev => [...prev, newFlight]);
+            // Переключаемся на вкладку с рейсами
+            setActiveTab("flights");
+          }} />
+</section>
 
           {/* Вкладка "Статистика" */}
           <section

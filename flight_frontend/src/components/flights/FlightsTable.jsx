@@ -228,17 +228,9 @@ export default function FlightsTable({
                       flight.arrival_airport;
 
                     return (
-                      <tr
-                        key={flight.id}
-                        className="flight-row"
-                        onClick={() =>
-                          onSelectFlight && onSelectFlight(flight)
-                        }
-                      >
+                      <tr key={flight.id} className="flight-row" onClick={() => onSelectFlight && onSelectFlight(flight)}>
                         <td className="flight-number-cell">
-                          <span className="flight-number">
-                            {flight.flight_number}
-                          </span>
+                          <span className="flight-number">{flight.flight_number}</span>
                         </td>
                         <td className="airline-cell">
                           <div className="airline-info">
@@ -246,7 +238,7 @@ export default function FlightsTable({
                               {flight.airline_code}
                             </span>
                             <span className="airline-name">
-                              {flight.airline_name}
+                              {flight.airline_name || "—"}
                             </span>
                           </div>
                         </td>
@@ -276,9 +268,7 @@ export default function FlightsTable({
                           {formatTime(flight.arrival_time)}
                         </td>
                         <td className="status-cell">
-                          <span
-                            className={`status-badge ${statusInfo.className}`}
-                          >
+                          <span className={`status-badge ${statusInfo.className}`}>
                             {statusInfo.text}
                           </span>
                         </td>

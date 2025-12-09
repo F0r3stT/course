@@ -488,3 +488,21 @@
     grid-template-columns: 1fr;
   }
 }
+.arrival {
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.tab:nth-child(3) {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.tab:nth-child(3):hover {
+  background: linear-gradient(135deg, #059669, #047857);
+}
+
+.tab.active:nth-child(3) {
+  background: linear-gradient(135deg, #047857, #065f46);
+  color: white;
+}

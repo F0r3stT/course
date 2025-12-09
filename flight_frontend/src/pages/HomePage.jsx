@@ -7,6 +7,11 @@ import WeatherWidget from "../components/common/WeatherWidget.jsx";
 
 import FlightsTable from "../components/flights/FlightsTable.jsx";
 import FlightDetailsModal from "../components/flights/FlightDetailsModal.jsx";
+import FlightSearch from "../components/flights/FlightSearch.jsx";
+import FlightSearchResults from "../components/flights/FlightSearchResults.jsx";
+import "../components/flights/FlightSearch.css";
+import "../components/flights/FlightSearchResults.css";
+
 
 import { AIRPORT_TO_CITY } from "../utils/airports.js"; // Импортируем из общего файла
 
@@ -32,6 +37,8 @@ export default function HomePage() {
   const [boardLoading, setBoardLoading] = useState(true);
 
   const [selectedFlight, setSelectedFlight] = useState(null);
+  const [searchResults, setSearchResults] = useState([]);
+
   // ---------- Функции загрузки данных ----------
 
   const fetchStats = async () => {
@@ -52,6 +59,35 @@ export default function HomePage() {
       console.error("[HomePage] Error fetching stats:", error);
     }
   };
+  const popularFlights = React.useMemo(() => {
+    if (!featuredFlights || featuredFlights.length === 0) return [];
+
+    const map = new Map();
+
+    featuredFlights.forEach((f) => {
+      const key = `${f.departure_airport}-${f.arrival_airport}`;
+      const existing = map.get(key);
+
+      if (!existing) {
+        map.set(key, {
+          ...f,
+          flightsCount: 1,
+        });
+      } else {
+        const flightsCount = existing.flightsCount + 1;
+        // берём самый поздний рейс по времени вылета как代表
+        const existingDep = new Date(existing.departure_time);
+        const currentDep = new Date(f.departure_time);
+        map.set(key, {
+          ...(currentDep > existingDep ? f : existing),
+          flightsCount,
+        });
+      }
+    });
+    return Array.from(map.values())
+      .sort((a, b) => b.flightsCount - a.flightsCount)
+      .slice(0, 4);
+  }, [featuredFlights]);
 
   const fetchFeaturedFlights = async () => {
     try {
@@ -152,10 +188,19 @@ export default function HomePage() {
                     <i className="icon-lock"></i>
                     Вход для сотрудников
                   </Link>
-                  <button className="btn btn-outline btn-large">
+                  <a 
+                    href="#flight-search" 
+                    className="btn btn-outline btn-large"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      document.getElementById('flight-search').scrollIntoView({ 
+                        behavior: 'smooth' 
+                      });
+                    }}
+                  >
                     <i className="icon-search"></i>
                     Поиск рейсов
-                  </button>
+                  </a>
                 </>
               ) : (
                 <>
@@ -207,21 +252,21 @@ export default function HomePage() {
       </section>
 
       {/* Быстрый поиск */}
-      <section className="quick-search-section">
+      <section className="quick-search-section" id="flight-search">
         <div className="container">
-          <h2 className="section-title">Поиск рейсов</h2>
+          <div className="section-header">
+          </div>
+          
           <div className="search-card">
-            <AirportSelector onSearch={handleQuickSearch} />
-            <div className="search-tips">
-              <p>
-                💡 <strong>Советы по поиску:</strong>
-              </p>
-              <ul>
-                <li>Используйте код аэропорта (SVO, DME, LED)</li>
-                <li>Номер рейса должен содержать только цифры</li>
-                <li>Вы можете искать по маршруту или статусу</li>
-              </ul>
-            </div>
+            <FlightSearch 
+              flights={boardFlights} 
+              onSearchResults={setSearchResults}
+            />
+            
+            <FlightSearchResults
+              results={searchResults}
+              onSelectFlight={setSelectedFlight}
+            />
           </div>
         </div>
       </section>
@@ -271,7 +316,7 @@ export default function HomePage() {
             </div>
           ) : (
             <div className="flights-grid">
-              {featuredFlights.slice(0, 4).map((flight) => {
+    {popularFlights.map((flight) => {
                 const departureCity = AIRPORT_TO_CITY[flight.departure_airport] || flight.departure_airport;
                 const arrivalCity = AIRPORT_TO_CITY[flight.arrival_airport] || flight.arrival_airport;
                 

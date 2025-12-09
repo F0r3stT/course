@@ -69,75 +69,79 @@ func main() {
 		ctxReq := c.Request.Context()
 
 		rows, err := pool.Query(ctxReq, `
-			SELECT 
-				id,
-				flight_number,
-				COALESCE(airline_code, ''),
-				COALESCE(airline_name, ''),
-				departure_airport,
-				arrival_airport,
-				departure_time,
-				arrival_time,
-				status
-			FROM flights
-			ORDER BY departure_time
-		`)
+        SELECT
+            id,
+            flight_number,
+            COALESCE(airline_code, ''),
+            COALESCE(airline_name, ''),
+            COALESCE(aircraft_type, ''),
+            departure_airport,
+            arrival_airport,
+            departure_time,
+            arrival_time,
+            status
+        FROM flights
+        ORDER BY departure_time
+    `)
 		if err != nil {
-			log.Printf("❌ Database query error: %v", err)
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error":   "database error",
-				"message": err.Error(),
-			})
+			log.Printf("❌ Flights query error: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "database error"})
 			return
 		}
 		defer rows.Close()
 
-		var flights []map[string]interface{}
-
+		type Flight struct {
+			ID                    int       `json:"id"`
+			FlightNumber          string    `json:"flight_number"`
+			AirlineCode           string    `json:"airline_code"`
+			AirlineName           string    `json:"airline_name"`
+			AircraftType          string    `json:"aircraft_type"`
+			DepartureAirport      string    `json:"departure_airport"`
+			ArrivalAirport        string    `json:"arrival_airport"`
+			DepartureTime         time.Time `json:"departure_time"`
+			ArrivalTime           time.Time `json:"arrival_time"`
+			Status                string    `json:"status"`
+			FlightDurationMinutes int       `json:"flight_duration_minutes"`
+		}
+		now := time.Now().UTC()
+		var flights []Flight
 		for rows.Next() {
-			var (
-				id               int64
-				flightNumber     string
-				airlineCode      string
-				airlineName      string
-				departureAirport string
-				arrivalAirport   string
-				departureTime    time.Time
-				arrivalTime      time.Time
-				status           string
-			)
-
+			var f Flight
 			if err := rows.Scan(
-				&id, &flightNumber, &airlineCode, &airlineName,
-				&departureAirport, &arrivalAirport,
-				&departureTime, &arrivalTime, &status,
+				&f.ID,
+				&f.FlightNumber,
+				&f.AirlineCode,
+				&f.AirlineName,
+				&f.AircraftType,
+				&f.DepartureAirport,
+				&f.ArrivalAirport,
+				&f.DepartureTime,
+				&f.ArrivalTime,
+				&f.Status,
 			); err != nil {
-				log.Printf("❌ Row scan error: %v", err)
+				log.Printf("❌ scan flight error: %v", err)
 				continue
 			}
-
-			flight := map[string]interface{}{
-				"id":                      id,
-				"flight_number":           flightNumber,
-				"airline_code":            airlineCode,
-				"airline_name":            airlineName,
-				"departure_airport":       departureAirport,
-				"arrival_airport":         arrivalAirport,
-				"departure_time":          departureTime.Format(time.RFC3339),
-				"arrival_time":            arrivalTime.Format(time.RFC3339),
-				"status":                  status,
-				"flight_duration_minutes": int(arrivalTime.Sub(departureTime).Minutes()),
+			// авто-обновление статуса (см. пункт 3)
+			if f.Status == "scheduled" || f.Status == "in_air" || f.Status == "landed" {
+				if now.After(f.ArrivalTime) {
+					f.Status = "landed"
+				} else if now.After(f.DepartureTime) {
+					f.Status = "in_air"
+				} else {
+					f.Status = "scheduled"
+				}
 			}
-			flights = append(flights, flight)
+
+			// длительность в минутах
+			duration := int(f.ArrivalTime.Sub(f.DepartureTime).Minutes())
+			if duration < 0 {
+				duration = 0
+			}
+			f.FlightDurationMinutes = duration
+			flights = append(flights, f)
 		}
 
-		if err := rows.Err(); err != nil {
-			log.Printf("❌ Rows error: %v", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "rows error"})
-			return
-		}
-
-		log.Printf("✅ Returning %d flights", len(flights))
 		c.JSON(http.StatusOK, flights)
 	})
 
@@ -327,6 +331,89 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{
 			"id":     id,
 			"status": req.Status,
+		})
+	})
+	// Создание рейса
+	r.POST("/api/flights", func(c *gin.Context) {
+		var req struct {
+			FlightNumber     string `json:"flight_number"`
+			AirlineCode      string `json:"airline_code"`
+			AirlineName      string `json:"airline_name"`
+			AircraftType     string `json:"aircraft_type"`
+			DepartureAirport string `json:"departure_airport"`
+			ArrivalAirport   string `json:"arrival_airport"`
+			DepartureTime    string `json:"departure_time"`
+			ArrivalTime      string `json:"arrival_time"`
+			Status           string `json:"status"`
+		}
+
+		// 1) Читаем JSON из запроса
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
+			return
+		}
+
+		// 2) Простая валидация
+		if req.FlightNumber == "" || req.DepartureAirport == "" || req.ArrivalAirport == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "missing required fields"})
+			return
+		}
+		if req.Status == "" {
+			req.Status = "scheduled"
+		}
+
+		// 3) Парсим время в time.Time
+		depTime, err1 := time.Parse(time.RFC3339, req.DepartureTime)
+		arrTime, err2 := time.Parse(time.RFC3339, req.ArrivalTime)
+		if err1 != nil || err2 != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid datetime format (must be RFC3339)"})
+			return
+		}
+
+		// 4) Пишем в базу. ВАЖНО: NULLIF($2, '') чтобы "" -> NULL и не ломал внешний ключ
+		ctxReq := c.Request.Context()
+		var newID int64
+
+		err := pool.QueryRow(ctxReq, `
+				INSERT INTO flights (
+					flight_number, airline_code, airline_name, aircraft_type,
+					departure_airport, arrival_airport,
+					departure_time, arrival_time, status
+				)
+				VALUES (
+					$1,
+					NULLIF($2, ''),  -- "" -> NULL, не конфликтует с FK
+					$3,
+					$4,
+					$5,
+					$6,
+					$7,
+					$8,
+					$9
+				)
+				RETURNING id
+			`,
+			req.FlightNumber,
+			req.AirlineCode,
+			req.AirlineName,
+			req.AircraftType,
+			req.DepartureAirport,
+			req.ArrivalAirport,
+			depTime,
+			arrTime,
+			req.Status,
+		).Scan(&newID)
+
+		if err != nil {
+			log.Printf("❌ Insert flight error: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "database error"})
+			return
+		}
+
+		// 5) Возвращаем ответ
+		c.JSON(http.StatusCreated, gin.H{
+			"id":     newID,
+			"status": "created",
 		})
 	})
 
@@ -551,4 +638,5 @@ func createTables(ctx context.Context, pool *pgxpool.Pool) {
 	}
 
 	log.Printf("✅ Seeded %d flights", len(seeds))
+
 }

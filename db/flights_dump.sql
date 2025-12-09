@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict fFlUWPmRMVCgH8NZUoGuzBfSdUoKGW7hx9IW2yBTaevvYx9tbXgVgHSVLQZgFs5
+\restrict 28R97Da9wojtWyPdsVsctedaUjczzrZjgt1HHgM2Sag4mCOSlz5QTYS3tNp4eMJ
 
 -- Dumped from database version 16.11 (Ubuntu 16.11-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.11 (Ubuntu 16.11-0ubuntu0.24.04.1)
@@ -19,10 +19,17 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Data for Name: airlines; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: airlines; Type: TABLE DATA; Schema: public; Owner: flights_user
 --
 
 COPY public.airlines (code, name) FROM stdin;
+SU	Аэрофлот
+S7	S7 Airlines
+U6	Уральские авиалинии
+TK	Turkish Airlines
+LH	Lufthansa
+BA	British Airways
+EK	Emirates
 \.
 
 
@@ -34,7 +41,8 @@ COPY public.flights (id, flight_number, airline_code, departure_airport, arrival
 14	5324	\N	SVO	TOM	2025-12-07 06:07:00+07	2025-12-07 15:07:00+07	scheduled	\N	\N	\N
 15	4342	\N	SVO	TOM	2025-12-07 07:20:00+07	2025-12-07 15:20:00+07	delayed	\N	\N	\N
 16	56823	\N	DME	VKO	2025-12-06 11:22:00+07	2025-12-06 17:22:00+07	scheduled	\N	\N	\N
-13	2425	\N	NUD	SVO	2025-12-05 22:23:00+07	2025-12-06 22:23:00+07	landed	\N	\N	\N
+27	533523	S7	SVO	PUL	2025-12-07 20:52:00+07	2025-12-08 05:02:00+07	scheduled	Boeing 777	\N	S7 Airlines
+13	2425	\N	NUD	SVO	2025-12-05 22:23:00+07	2025-12-06 22:23:00+07	scheduled	\N	\N	\N
 \.
 
 
@@ -51,7 +59,7 @@ COPY public.users (id, username, password_hash, role, created_at) FROM stdin;
 -- Name: flights_id_seq; Type: SEQUENCE SET; Schema: public; Owner: flights_user
 --
 
-SELECT pg_catalog.setval('public.flights_id_seq', 16, true);
+SELECT pg_catalog.setval('public.flights_id_seq', 27, true);
 
 
 --
@@ -65,5 +73,5 @@ SELECT pg_catalog.setval('public.users_id_seq', 1, true);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict fFlUWPmRMVCgH8NZUoGuzBfSdUoKGW7hx9IW2yBTaevvYx9tbXgVgHSVLQZgFs5
+\unrestrict 28R97Da9wojtWyPdsVsctedaUjczzrZjgt1HHgM2Sag4mCOSlz5QTYS3tNp4eMJ
 

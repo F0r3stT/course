@@ -114,20 +114,13 @@ export default function LoginPage() {
               )}
             </button>
 
-            <div className="login-divider">
-              <span>или</span>
-            </div>
-
-            <div className="alternative-login">
-              <button type="button" className="alt-button">
-                <span className="alt-icon">👨‍💼</span>
-                Вход по карте сотрудника
-              </button>
-              <button type="button" className="alt-button">
-                <span className="alt-icon">📱</span>
-                Мобильный доступ
-              </button>
-            </div>
+            <button
+              type="button"
+              className="back-button"
+              onClick={() => navigate(-1)}
+            >
+              ← Вернуться назад
+            </button>
           </form>
 
           <div className="login-footer">
@@ -138,14 +131,7 @@ export default function LoginPage() {
             <div className="login-hint">
               <p><strong>Тестовые учетные данные:</strong></p>
               <div className="credentials">
-                <div className="credential">
-                  <span className="cred-label">Логин:</span>
-                  <span className="cred-value">admin</span>
-                </div>
-                <div className="credential">
-                  <span className="cred-label">Пароль:</span>
-                  <span className="cred-value">admin123</span>
-                </div>
+              
               </div>
             </div>
           </div>
