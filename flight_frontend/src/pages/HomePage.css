@@ -446,3 +446,234 @@
 }
 
 }
+
+
+/* Стили для кнопки "Посмотреть табло" */
+.btn-board {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.btn-board:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(245, 158, 11, 0.3);
+  background: linear-gradient(135deg, #d97706, #b45309);
+}
+
+.btn-board i {
+  font-size: 1.2rem;
+}
+
+/* Стили для анимированной кнопки табло */
+.btn-board {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-board:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(245, 158, 11, 0.3);
+  background: linear-gradient(135deg, #d97706, #b45309);
+}
+
+.btn-board i {
+  font-size: 1.2rem;
+}
+
+.btn-board::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.btn-board:hover::before {
+  left: 100%;
+}
+
+/* Анимации для табло */
+.board-section.animated {
+  position: relative;
+  overflow: hidden;
+}
+
+.board-section.slide-in {
+  animation: slideInFromRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.board-section.slide-out {
+  animation: slideOutToRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutToRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100px);
+    display: none;
+  }
+}
+
+/* Контейнер табло с тенью */
+.board-container {
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius);
+  padding: 32px;
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-color);
+  transform-origin: top center;
+  animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Индикатор загрузки табло */
+.board-loading {
+  text-align: center;
+  padding: 60px;
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  border-radius: var(--border-radius);
+  border: 2px dashed var(--border-color);
+}
+
+.board-loading .spinner {
+  width: 60px;
+  height: 60px;
+  border-width: 4px;
+  margin: 0 auto 20px;
+}
+
+/* Элементы управления табло */
+.board-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.btn-close-board {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.5rem;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.btn-close-board:hover {
+  background: var(--bg-primary);
+  color: var(--danger);
+  transform: rotate(90deg);
+}
+
+.board-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+}
+
+.board-stats {
+  display: flex;
+  gap: 20px;
+}
+
+.board-stat {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.board-stat strong {
+  color: var(--text-primary);
+  margin-right: 5px;
+}
+
+.btn-refresh {
+  padding: 8px 16px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.btn-refresh:hover {
+  background: var(--primary-dark);
+  transform: rotate(15deg);
+}
+
+.loading-sub {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-top: 10px;
+}

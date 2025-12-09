@@ -11,6 +11,7 @@ import FlightSearch from "../components/flights/FlightSearch.jsx";
 import FlightSearchResults from "../components/flights/FlightSearchResults.jsx";
 import "../components/flights/FlightSearch.css";
 import "../components/flights/FlightSearchResults.css";
+import AnimatedStats from "../components/common/AnimatedStats.jsx";
 
 
 import { AIRPORT_TO_CITY } from "../utils/airports.js"; // Импортируем из общего файла
@@ -39,6 +40,9 @@ export default function HomePage() {
   const [selectedFlight, setSelectedFlight] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
 
+
+  const [showBoard, setShowBoard] = useState(false);
+const [boardAnimation, setBoardAnimation] = useState('');
   // ---------- Функции загрузки данных ----------
 
   const fetchStats = async () => {
@@ -59,6 +63,109 @@ export default function HomePage() {
       console.error("[HomePage] Error fetching stats:", error);
     }
   };
+  const toggleBoard = () => {
+  if (!showBoard) {
+    setShowBoard(true);
+    setBoardAnimation('slide-in');
+    
+    // Плавная прокрутка к табло
+    setTimeout(() => {
+      document.getElementById('flight-board-section').scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }, 300);
+  } else {
+    setBoardAnimation('slide-out');
+    setTimeout(() => {
+      {/* Табло рейсов - показываем только при активации */}
+{showBoard && (
+  <section 
+    className={`board-section animated ${boardAnimation}`}
+    id="flight-board-section"
+  >
+    <div className="container">
+      <div className="board-container">
+        <div className="section-header">
+          <h2 className="section-title">
+            <i className="icon-board" style={{ marginRight: '10px' }}>📋</i>
+            Табло рейсов в реальном времени
+          </h2>
+          <div className="board-controls">
+            <div className="last-updated">
+              <i className="icon-sync" style={{ marginRight: '5px' }}>🔄</i>
+              Обновлено: {new Date().toLocaleTimeString("ru-RU")}
+            </div>
+            <button 
+              className="btn-close-board"
+              onClick={toggleBoard}
+              aria-label="Закрыть табло"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+
+        {boardLoading ? (
+          <div className="board-loading">
+            <div className="spinner"></div>
+            <p>Загрузка данных табло...</p>
+            <p className="loading-sub">Подключаемся к серверу в реальном времени</p>
+          </div>
+        ) : (
+          <>
+            <FlightsTable
+              flights={boardFlights}
+              mode="departures"
+              isAdmin={false}
+              onSelectFlight={setSelectedFlight}
+              compact={false}
+            />
+            
+            <div className="board-footer">
+              <div className="board-stats">
+                <span className="board-stat">
+                  <strong>{boardFlights.length}</strong> рейсов показано
+                </span>
+                <span className="board-stat">
+                  <strong>
+                    {boardFlights.filter(f => f.status === 'in_air').length}
+                  </strong> в воздухе
+                </span>
+                <span className="board-stat">
+                  <strong>
+                    {boardFlights.filter(f => f.status === 'delayed').length}
+                  </strong> задержано
+                </span>
+              </div>
+              
+              <button 
+                className="btn-refresh"
+                onClick={fetchBoardFlights}
+              >
+                <i className="icon-refresh">🔄</i>
+                Обновить данные
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  </section>
+)}
+      setBoardAnimation('');
+    }, 300);
+  }
+};
+
+// Обновляем кнопку в hero-actions:
+<button 
+  className="btn-board"
+  onClick={toggleBoard}
+>
+  <i className="icon-board">📋</i>
+  {showBoard ? 'Скрыть табло' : 'Посмотреть табло'}
+</button>
   const popularFlights = React.useMemo(() => {
     if (!featuredFlights || featuredFlights.length === 0) return [];
 
@@ -181,23 +288,38 @@ export default function HomePage() {
               с акцентом на безопасность и надежность данных.
             </p>
 
-            <div className="hero-actions">
-              {!user ? (
-                <>
-                  <Link to="/login" className="btn btn-primary btn-large">
-                    <i className="icon-lock"></i>
-                    Вход для сотрудников
-                  </Link>
-                  <a 
-                    href="#flight-search" 
-                    className="btn btn-outline btn-large"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      document.getElementById('flight-search').scrollIntoView({ 
-                        behavior: 'smooth' 
-                      });
-                    }}
-                  >
+  <div className="hero-actions">
+  {!user ? (
+    <>
+      <Link to="/login" className="btn btn-primary btn-large">
+        <i className="icon-lock"></i>
+        Вход для сотрудников
+      </Link>
+      <button 
+        className="btn btn-outline btn-large"
+        onClick={() => navigate('/flights')}
+        style={{
+          background: 'transparent',
+          border: '2px solid white',
+          color: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}
+      >
+        <i className="icon-board" style={{fontSize: '1.2rem'}}>📋</i>
+        Посмотреть табло
+      </button>
+      <a 
+        href="#flight-search" 
+        className="btn btn-outline btn-large"
+        onClick={(e) => {
+          e.preventDefault();
+          document.getElementById('flight-search').scrollIntoView({ 
+            behavior: 'smooth' 
+          });
+        }}
+      >
                     <i className="icon-search"></i>
                     Поиск рейсов
                   </a>
@@ -220,6 +342,7 @@ export default function HomePage() {
           </div>
 
           <div className="hero-stats">
+             <AnimatedStats stats={stats} />
             <div className="stats-grid">
               <div className="stat-card">
                 <div className="stat-icon">✈</div>

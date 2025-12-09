@@ -1,0 +1,237 @@
+.animated-stats-container {
+  margin: 4px 3;
+  padding: 10px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.05), rgba(15, 23, 42, 0.02));
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stats-hero {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Анимированная дорожка с самолётом */
+.flight-track {
+  position: relative;
+  margin-bottom: 40px;
+  padding: 20px 0;
+}
+
+.track-line {
+  position: relative;
+  height: 4px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    #3b82f6 25%, 
+    #8b5cf6 50%, 
+    #ec4899 75%, 
+    transparent 100%
+  );
+  border-radius: 2px;
+  overflow: visible;
+}
+
+.animated-plane {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.5rem;
+  background: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+  cursor: pointer;
+  z-index: 10;
+  animation: planeFloat 3s ease-in-out infinite;
+}
+
+.animated-plane:hover .plane-tooltip {
+  opacity: 1;
+  transform: translate(-50%, -100%);
+}
+
+.plane-tooltip {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translate(-50%, 0);
+  background: #1e293b;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  opacity: 0;
+  transition: all 0.3s ease;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.plane-tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #1e293b;
+}
+
+.track-markers {
+  position: relative;
+  height: 20px;
+  margin-top: 10px;
+}
+
+.marker {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.marker-start { left: 0; }
+.marker-middle { left: 50%; }
+.marker-end { left: 100%; }
+
+.marker-active {
+  color: #10b981;
+  font-weight: 600;
+  top: 25px;
+  font-size: 0.8rem;
+}
+
+/* Анимированные карточки статистики */
+.stats-grid-animated {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.stat-card-animated {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border: 1px solid #e2e8f0;
+}
+
+.stat-card-animated:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card-animated.highlight {
+  border: 2px solid #10b981;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+}
+
+.stat-card-inner {
+  position: relative;
+  z-index: 2;
+}
+
+.stat-icon-animated {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  display: inline-block;
+}
+
+.stat-icon-animated[data-animation="pulse"] {
+  animation: pulse 2s infinite;
+}
+
+.stat-icon-animated[data-animation="float"] {
+  animation: float 3s ease-in-out infinite;
+}
+
+.stat-icon-animated[data-animation="glow"] {
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+.stat-icon-animated[data-animation="bounce"] {
+  animation: bounce 2s infinite;
+}
+
+.stat-content-animated {
+  margin-top: 10px;
+}
+
+.stat-value-animated {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.stat-label-animated {
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.active-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #10b981;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  animation: blink 2s infinite;
+}
+
+.stat-wave {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  transform: translateX(-100%);
+  animation: wave 3s linear infinite;
+}
+
+/* Анимации */
+@keyframes planeFloat {
+  0%, 100% { transform: translate(-50%, -50%); }
+  50% { transform: translate(-50%, -60%); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes glow {
+  from { filter: drop-shadow(0 0 2px currentColor); }
+  to { filter: drop-shadow(0 0 10px currentColor); }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes wave {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}

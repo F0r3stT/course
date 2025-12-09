@@ -411,3 +411,87 @@
   font-size: 12px;
   color: #6b7280;
 }
+
+.board-status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  border-radius: 8px 8px 0 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-dot.online {
+  background: var(--success);
+  animation: pulseOnline 2s infinite;
+}
+
+.flight-count {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.flight-count strong {
+  color: var(--text-primary);
+}
+
+@keyframes pulseOnline {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Анимация строк таблицы */
+.flight-row {
+  transition: all 0.3s ease;
+  animation: fadeInRow 0.5s ease forwards;
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.flight-row:nth-child(1) { animation-delay: 0.1s; }
+.flight-row:nth-child(2) { animation-delay: 0.2s; }
+.flight-row:nth-child(3) { animation-delay: 0.3s; }
+.flight-row:nth-child(4) { animation-delay: 0.4s; }
+.flight-row:nth-child(5) { animation-delay: 0.5s; }
+/* и так далее */
+
+@keyframes fadeInRow {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.flight-row:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(59, 130, 246, 0.02));
+  transform: translateX(5px);
+}
+
+/* Стили для компактного режима */
+.modern-flight-board.compact {
+  font-size: 0.9rem;
+}
+
+.modern-flight-board.compact .flight-number {
+  font-size: 1rem;
+}
+
+.modern-flight-board.compact .status-badge {
+  padding: 3px 8px;
+  font-size: 0.75rem;
+}
