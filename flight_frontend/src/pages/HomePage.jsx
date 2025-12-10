@@ -31,6 +31,7 @@ export default function HomePage() {
     airlines: 0,
   });
 
+  
   const [featuredFlights, setFeaturedFlights] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -42,7 +43,8 @@ export default function HomePage() {
 
 
   const [showBoard, setShowBoard] = useState(false);
-const [boardAnimation, setBoardAnimation] = useState('');
+const [boardAnimation, setBoardAnimation] = useState("");
+
   // ---------- Функции загрузки данных ----------
 
   const fetchStats = async () => {
@@ -65,107 +67,36 @@ const [boardAnimation, setBoardAnimation] = useState('');
   };
   const toggleBoard = () => {
   if (!showBoard) {
+    // открываем
     setShowBoard(true);
-    setBoardAnimation('slide-in');
-    
-    // Плавная прокрутка к табло
-    setTimeout(() => {
-      document.getElementById('flight-board-section').scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }, 300);
-  } else {
-    setBoardAnimation('slide-out');
-    setTimeout(() => {
-      {/* Табло рейсов - показываем только при активации */}
-{showBoard && (
-  <section 
-    className={`board-section animated ${boardAnimation}`}
-    id="flight-board-section"
-  >
-    <div className="container">
-      <div className="board-container">
-        <div className="section-header">
-          <h2 className="section-title">
-            <i className="icon-board" style={{ marginRight: '10px' }}>📋</i>
-            Табло рейсов в реальном времени
-          </h2>
-          <div className="board-controls">
-            <div className="last-updated">
-              <i className="icon-sync" style={{ marginRight: '5px' }}>🔄</i>
-              Обновлено: {new Date().toLocaleTimeString("ru-RU")}
-            </div>
-            <button 
-              className="btn-close-board"
-              onClick={toggleBoard}
-              aria-label="Закрыть табло"
-            >
-              ✕
-            </button>
-          </div>
-        </div>
+    setBoardAnimation("home-board-animate-in");
 
-        {boardLoading ? (
-          <div className="board-loading">
-            <div className="spinner"></div>
-            <p>Загрузка данных табло...</p>
-            <p className="loading-sub">Подключаемся к серверу в реальном времени</p>
-          </div>
-        ) : (
-          <>
-            <FlightsTable
-              flights={boardFlights}
-              mode="departures"
-              isAdmin={false}
-              onSelectFlight={setSelectedFlight}
-              compact={false}
-            />
-            
-            <div className="board-footer">
-              <div className="board-stats">
-                <span className="board-stat">
-                  <strong>{boardFlights.length}</strong> рейсов показано
-                </span>
-                <span className="board-stat">
-                  <strong>
-                    {boardFlights.filter(f => f.status === 'in_air').length}
-                  </strong> в воздухе
-                </span>
-                <span className="board-stat">
-                  <strong>
-                    {boardFlights.filter(f => f.status === 'delayed').length}
-                  </strong> задержано
-                </span>
-              </div>
-              
-              <button 
-                className="btn-refresh"
-                onClick={fetchBoardFlights}
-              >
-                <i className="icon-refresh">🔄</i>
-                Обновить данные
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  </section>
-)}
-      setBoardAnimation('');
-    }, 300);
+    // после рендера – плавный скролл к секции табло
+    setTimeout(() => {
+      const el = document.getElementById("flight-board-section");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 50);
+  } else {
+    // закрываем с анимацией
+    setBoardAnimation("home-board-animate-out");
+    setTimeout(() => {
+      setShowBoard(false);
+      setBoardAnimation("");
+    }, 300); // то же время, что и в CSS
   }
 };
 
 // Обновляем кнопку в hero-actions:
-<button 
-  className="btn-board"
+<button
+  className="btn btn-secondary"
+  type="button"
   onClick={toggleBoard}
 >
-  <i className="icon-board">📋</i>
-  {showBoard ? 'Скрыть табло' : 'Посмотреть табло'}
+  {showBoard ? "Скрыть табло" : "Посмотреть табло"}
 </button>
+
   const popularFlights = React.useMemo(() => {
     if (!featuredFlights || featuredFlights.length === 0) return [];
 
@@ -197,50 +128,52 @@ const [boardAnimation, setBoardAnimation] = useState('');
   }, [featuredFlights]);
 
   const fetchFeaturedFlights = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(`${API_BASE}/api/flights`);
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`Ошибка /api/flights: ${res.status} ${text}`);
-      }
-      const data = await res.json();
-      const flights = Array.isArray(data) ? data : data.flights || [];
-      setFeaturedFlights(flights);
-    } catch (error) {
-      console.error("[HomePage] Error fetching featured flights:", error);
-      setFeaturedFlights([]);
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+    const res = await fetch(`${API_BASE}/api/flights`);
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Ошибка /api/flights: ${res.status} ${text}`);
     }
-  };
+    const data = await res.json();
+    const flights = Array.isArray(data) ? data : data.flights || [];
+    setFeaturedFlights(flights);
+  } catch (error) {
+    console.error("[HomePage] Error fetching featured flights:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const fetchBoardFlights = async () => {
-    console.log("[HomePage] fetchBoardFlights: start");
-    setBoardLoading(true);
+  console.log("[HomePage] fetchBoardFlights: start");
+  setBoardLoading(true);
 
-    try {
-      const res = await fetch(`${API_BASE}/api/flights`);
-      console.log("[HomePage] /api/flights status =", res.status);
+  try {
+    const res = await fetch(`${API_BASE}/api/flights`);
+    console.log("[HomePage] /api/flights status =", res.status);
 
-      const text = await res.text();
-      console.log("[HomePage] /api/flights raw body =", text);
+    const text = await res.text();
+    console.log("[HomePage] /api/flights raw body =", text);
 
-      if (!res.ok) {
-        throw new Error(`Не удалось загрузить табло рейсов: ${res.status}`);
-      }
-
-      const data = JSON.parse(text);
-      const flights = Array.isArray(data) ? data : data.flights || [];
-      setBoardFlights(flights);
-    } catch (error) {
-      console.error("[HomePage] fetchBoardFlights error:", error);
-      setBoardFlights([]);
-    } finally {
-      setBoardLoading(false);
-      console.log("[HomePage] fetchBoardFlights: done");
+    if (!res.ok) {
+      throw new Error(`Не удалось загрузить табло рейсов: ${res.status}`);
     }
-  };
+
+    const data = JSON.parse(text);
+    const flights = Array.isArray(data) ? data : data.flights || [];
+    setBoardFlights(flights);
+  } catch (error) {
+    console.error("[HomePage] fetchBoardFlights error:", error);
+    // ВАЖНО: не очищаем табло рейсов при ошибке
+    // setBoardFlights([]);
+  } finally {
+    setBoardLoading(false);
+    console.log("[HomePage] fetchBoardFlights: done");
+  }
+};
+  
 
   // ---------- Инициализация и периодическое обновление ----------
 
@@ -417,7 +350,21 @@ const [boardAnimation, setBoardAnimation] = useState('');
               onSelectFlight={setSelectedFlight}
             />
           )}
+{showBoard && (
+  <section
+    id="flight-board-section"
+    className={`home-board-section ${boardAnimation}`}
+  >
+    {/* существующий код табло */}
+    <FlightsTable
+      flights={boardFlights}
+      loading={boardLoading}
+      onSelectFlight={handleSelectFlight}
+    />
 
+    {/* если есть FlightSearch / FlightSearchResults – оставляем как было */}
+  </section>
+)}
           <FlightDetailsModal
             flight={selectedFlight}
             onClose={() => setSelectedFlight(null)}

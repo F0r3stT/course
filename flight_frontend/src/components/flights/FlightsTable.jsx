@@ -127,17 +127,7 @@ export default function FlightsTable({
             })}
           </span>
         </div>
-          {filteredFlights.length > 0 && (
-                <div className="board-status-bar">
-                  <div className="status-indicator">
-                    <div className="status-dot online"></div>
-                    <span>Данные обновляются в реальном времени</span>
-                  </div>
-                  <div className="flight-count">
-                    Показано: <strong>{filteredFlights.length}</strong> рейсов
-                  </div>
-                </div>
-              )}
+
 
         <div className="board-controls">
           <input

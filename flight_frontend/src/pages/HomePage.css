@@ -42,13 +42,15 @@
 .hero-content {
   position: relative;
   z-index: 2;
-  max-width: 1200px;
+  width: 100%;
+  max-width: 1920px; /* или можно вообще убрать max-width */
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 24px;
   display: grid;
   grid-template-columns: 1fr 400px;
   gap: 40px;
   align-items: center;
+  box-sizing: border-box;
 }
 
 .hero-text {
@@ -154,12 +156,6 @@
 /* Быстрый поиск */
 .quick-search-section {
   padding: 30px 0;
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
 }
 
 .section-title {
@@ -672,8 +668,28 @@
   transform: rotate(15deg);
 }
 
+.home-page.full-height {
+  min-height: 100vh;
+}
+
 .loading-sub {
   font-size: 0.9rem;
   color: var(--text-secondary);
   margin-top: 10px;
+}
+
+.home-board-section {
+  margin-top: 40px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  transform-origin: top center;
+}
+
+.home-board-animate-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.home-board-animate-out {
+  opacity: 0;
+  transform: translateY(-16px);
 }

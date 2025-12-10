@@ -30,13 +30,14 @@ body {
   color: var(--text-primary);
   background: var(--bg-primary);
 }
-
 .container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
+  /* растягиваем на всю ширину окна */
+  width: 100%;
+  max-width: 1920px;       /* можно убрать, если хочешь совсем без ограничения */
+ margin: 0 auto;
+  padding: 0 24px;         /* чуть больше отступы, чтобы не прилипало к краю */
+  box-sizing: border-box;
 }
-
 /* Header */
 .app-header {
   background: var(--bg-secondary);
@@ -51,7 +52,13 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
+  max-width: 1920px;   /* можно убрать или изменить, если нужно */
+  margin: 0 auto;
+  padding: 0 24px;
+  box-sizing: border-box;
 }
+
 
 .logo {
   font-size: 1.5rem;
@@ -379,8 +386,29 @@ body {
 }
 
 .logo-icon {
-  font-size: 1.8rem;
+  font-size: 1.4rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.8);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.4);
+  animation: logo-plane-float 3s ease-in-out infinite;
 }
+
+/* анимация "летающего" самолёта около логотипа */
+@keyframes logo-plane-float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-3px) rotate(10deg);
+  }
+}
+
 
 .nav {
   display: flex;

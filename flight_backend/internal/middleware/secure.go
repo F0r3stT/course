@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -24,6 +25,11 @@ func SecurityHeaders() gin.HandlerFunc {
 	}
 }
 
+var (
+	requestCounters = make(map[string]int)
+	requestMu       sync.Mutex
+)
+
 // GenerateNonce генерирует уникальный nonce для CSP
 func GenerateNonce() (string, error) {
 	nonce := make([]byte, 16)
@@ -40,25 +46,38 @@ func RequestThrottle(maxRequests int, window time.Duration) gin.HandlerFunc {
 		resetTime time.Time
 	}
 
-	requests := make(map[string]*requestInfo)
+	// общая карта и мьютекс для ВСЕХ запросов
+	var (
+		mu       sync.Mutex
+		requests = make(map[string]*requestInfo)
+	)
 
 	return func(c *gin.Context) {
 		ip := c.ClientIP()
 		now := time.Now()
 
-		if info, exists := requests[ip]; exists && now.Before(info.resetTime) {
-			if info.count >= maxRequests {
-				c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
-					"error": "Слишком много запросов",
-				})
-				return
-			}
-			info.count++
-		} else {
-			requests[ip] = &requestInfo{
+		mu.Lock()
+		info, exists := requests[ip]
+
+		// если записи нет либо окно истекло — начинаем новое окно
+		if !exists || now.After(info.resetTime) {
+			info = &requestInfo{
 				count:     1,
 				resetTime: now.Add(window),
 			}
+			requests[ip] = info
+		} else {
+			info.count++
+		}
+
+		currentCount := info.count
+		mu.Unlock()
+
+		if currentCount > maxRequests {
+			c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
+				"error": "Слишком много запросов",
+			})
+			return
 		}
 
 		c.Next()

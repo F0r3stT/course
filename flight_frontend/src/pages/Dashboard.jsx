@@ -1,5 +1,5 @@
 // src/pages/Dashboard.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import CreateFlightTab from "../components/flights/CreateFlightTab.jsx";
 import {
@@ -16,28 +16,37 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("flights");
   const [statusUpdatingId, setStatusUpdatingId] = useState(null);
-
-    useEffect(() => {
+  const firstLoad = useRef(true);
+  
+  useEffect(() => {
     loadData();
     const interval = setInterval(loadData, 30000); // каждые 30 секунд
     return () => clearInterval(interval);
   }, []);
+  
 
-  async function loadData() {
-    try {
+  
+async function loadData() {
+  try {
+    if (firstLoad.current) {
       setLoading(true);
-      const [flightsData, airlinesData] = await Promise.all([
-        fetchFlights(),
-        fetchAirlines(),
-      ]);
-      setFlights(flightsData);
-      setAirlines(airlinesData);
-    } catch (err) {
-      console.error("Error loading data:", err);
-    } finally {
+    }
+
+    const [flightsData, airlinesData] = await Promise.all([
+      fetchFlights(),
+      fetchAirlines(),
+    ]);
+    setFlights(flightsData);
+    setAirlines(airlinesData);
+  } catch (err) {
+    console.error("[Dashboard] loadData error", err);
+  } finally {
+    if (firstLoad.current) {
       setLoading(false);
+      firstLoad.current = false;
     }
   }
+}
 
   async function handleChangeStatus(flightId, newStatus) {
     try {

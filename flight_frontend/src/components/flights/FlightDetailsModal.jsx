@@ -1,7 +1,8 @@
 // src/components/flights/FlightDetailsModal.jsx
-import React, { useState, useEffect, useRef } from "react";
+import React from "react";
 import { getCityByAirportCode } from "../../utils/airports.js";
-import { useFlightProgress } from '../../hooks/useFlightProgress';
+import { useFlightProgress } from "../../hooks/useFlightProgress";
+import "./FlightsDetailsModal.css";
 
 const STATUS_LABELS = {
   scheduled: "По расписанию",
@@ -21,16 +22,6 @@ const STATUS_COLORS = {
   landed: "#8b5cf6",
 };
 
-const AIRLINE_LOGOS = {
-  SU: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Aeroflot_Logo_ru.svg/240px-Aeroflot_Logo_ru.svg.png",
-  S7: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/S7_new_logo.svg/240px-S7_new_logo.svg.png",
-  BA: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/British_Airways_Logo.svg/240px-British_Airways_Logo.svg.png",
-  EK: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Emirates_logo.svg/240px-Emirates_logo.svg.png",
-  QR: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Qatar_Airways_Logo.svg/240px-Qatar_Airways_Logo.svg.png",
-  LH: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Lufthansa_Logo.svg/240px-Lufthansa_Logo.svg.png",
-  AF: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Air_France_Logo_%282009%29.svg/240px-Air_France_Logo_%282009%29.svg.png",
-};
-
 const AIRCRAFT_IMAGES = {
   "Airbus A320": "https://cdn-icons-png.flaticon.com/512/824/824239.png",
   "Airbus A321": "https://cdn-icons-png.flaticon.com/512/824/824239.png",
@@ -40,6 +31,15 @@ const AIRCRAFT_IMAGES = {
   "Embraer E190": "https://cdn-icons-png.flaticon.com/512/2014/2014909.png",
   "Sukhoi Superjet 100": "https://cdn-icons-png.flaticon.com/512/2014/2014909.png",
 };
+
+function formatTimeOnly(value) {
+  if (!value) return "—";
+  const d = new Date(value);
+  return d.toLocaleTimeString("ru-RU", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 function formatDateTime(value) {
   if (!value) return "—";
@@ -53,94 +53,142 @@ function formatDateTime(value) {
   });
 }
 
-function formatTimeOnly(value) {
-  if (!value) return "—";
-  const d = new Date(value);
-  return d.toLocaleTimeString("ru-RU", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function getFlightProgress(departure, arrival) {
-  const now = new Date().getTime();
-  const start = new Date(departure).getTime();
-  const end = new Date(arrival).getTime();
-  
-  if (now < start) return 0;
-  if (now > end) return 100;
-  
-  return ((now - start) / (end - start)) * 100;
-}
-
-function getTimeRemaining(departure, arrival) {
-  const now = new Date();
-  const end = new Date(arrival);
-  
-  if (now > end) return null;
-  
-  const diffMs = end.getTime() - now.getTime();
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-  
-  return { hours: diffHours, minutes: diffMinutes };
-}
-
 function getFlightDuration(departure, arrival) {
   const start = new Date(departure);
   const end = new Date(arrival);
   const diffMs = end.getTime() - start.getTime();
-  
+
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
   const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-  
+
   return { hours: diffHours, minutes: diffMinutes };
 }
 
 function getAircraftImage(type) {
+  if (!type) {
+    return "https://cdn-icons-png.flaticon.com/512/2014/2014909.png";
+  }
+
   for (const [key, image] of Object.entries(AIRCRAFT_IMAGES)) {
-    if (type && type.includes(key.split(" ")[0])) {
+    if (type.includes(key.split(" ")[0])) {
       return image;
     }
   }
+
   return "https://cdn-icons-png.flaticon.com/512/2014/2014909.png";
 }
 
 export default function FlightDetailsModal({ flight, onClose }) {
   if (!flight) return null;
 
-  const departureCity = getCityByAirportCode(flight.departure_airport);
-  const arrivalCity = getCityByAirportCode(flight.arrival_airport);
+  const departureCityFull =
+    getCityByAirportCode(flight.departure_airport) || flight.departure_airport;
+  const arrivalCityFull =
+    getCityByAirportCode(flight.arrival_airport) || flight.arrival_airport;
+
+  // Красивое название города без кода в скобках
+  const departureCity = departureCityFull.split("(")[0].trim();
+  const arrivalCity = arrivalCityFull.split("(")[0].trim();
+
   const airlineCode = (flight.airline_code || "").slice(0, 2).toUpperCase();
-  const airlineLogo = AIRLINE_LOGOS[airlineCode];
-  
-    const { progress, timeRemaining } = useFlightProgress(
-    flight.departure_time, 
+
+  const { progress, timeRemaining } = useFlightProgress(
+    flight.departure_time,
     flight.arrival_time,
-    flight.status === "in_air" // Только для активных рейсов
+    flight.status === "in_air"
   );
-  const flightDuration = getFlightDuration(flight.departure_time, flight.arrival_time);
+
+  const flightDuration = getFlightDuration(
+    flight.departure_time,
+    flight.arrival_time
+  );
   const aircraftImage = getAircraftImage(flight.aircraft_type);
   const statusColor = STATUS_COLORS[flight.status] || "#6b7280";
 
-  // Анимация прогресса полёта
-  useEffect(() => {
-    if (flight.status !== "in_air") return;
-    
-    const interval = setInterval(() => {
-      const newProgress = getFlightProgress(flight.departure_time, flight.arrival_time);
-      setProgress(newProgress);
-      
-      const newTimeRemaining = getTimeRemaining(flight.departure_time, flight.arrival_time);
-      setTimeRemaining(newTimeRemaining);
-    }, 60000); // Обновление каждую минуту
-    
-    return () => clearInterval(interval);
-  }, [flight.departure_time, flight.arrival_time, flight.status]);
+  // Визуальный прогресс по линии
+  const visualProgressRaw =
+    flight.status === "landed"
+      ? 100
+      : flight.status === "scheduled"
+      ? 0
+      : progress || 0;
+
+  const visualProgress = Math.min(100, Math.max(0, visualProgressRaw));
+
+  // Генерация временной шкалы в зависимости от статуса
+  const getTimelineItems = () => {
+    const now = new Date();
+    const departureTime = new Date(flight.departure_time);
+    const arrivalTime = new Date(flight.arrival_time);
+    const items = [];
+
+    // Планирование
+    items.push({
+      time: formatDateTime(flight.scheduled_time || flight.departure_time),
+      event: "Рейс запланирован",
+      status: "completed",
+      icon: "📅"
+    });
+
+    // Регистрация (за 2 часа до вылета)
+    const checkinTime = new Date(departureTime.getTime() - 2 * 60 * 60 * 1000);
+    items.push({
+      time: formatDateTime(checkinTime),
+      event: "Начало регистрации",
+      status: now >= checkinTime ? "completed" : "upcoming",
+      icon: "🏷️"
+    });
+
+    // Посадка (за 40 минут до вылета)
+    const boardingTime = new Date(departureTime.getTime() - 40 * 60 * 1000);
+    items.push({
+      time: formatDateTime(boardingTime),
+      event: "Начало посадки",
+      status: flight.status === "boarding" ? "active" : 
+             now >= boardingTime ? "completed" : "upcoming",
+      icon: "👥"
+    });
+
+    // Вылет
+    items.push({
+      time: formatDateTime(flight.departure_time),
+      event: `Вылет из ${flight.departure_airport}`,
+      status: flight.status === "in_air" || flight.status === "landed" ? "completed" : 
+             flight.status === "delayed" ? "delayed" : "upcoming",
+      icon: "✈️",
+      description: departureCityFull
+    });
+
+    // В пути (только для in_air) - упрощенная версия
+    if (flight.status === "in_air") {
+      items.push({
+        time: "Сейчас",
+        event: "В воздухе",
+        status: "active",
+        icon: "🌤️"
+      });
+    }
+
+    // Прибытие
+    items.push({
+      time: formatDateTime(flight.arrival_time),
+      event: `Прибытие в ${flight.arrival_airport}`,
+      status: flight.status === "landed" ? "completed" : "upcoming",
+      icon: "🛬",
+      description: arrivalCityFull
+    });
+
+    return items;
+  };
+
+  const timelineItems = getTimelineItems();
 
   return (
     <div className="modern-modal-backdrop" onClick={onClose}>
-      <div className="modern-modal-container" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="modern-modal-container"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Заголовок */}
         <div className="modern-modal-header">
           <div className="flight-header-main">
@@ -150,7 +198,7 @@ export default function FlightDetailsModal({ flight, onClose }) {
             </div>
             <div className="flight-title">
               <h2>
-                {departureCity.split("(")[0]} → {arrivalCity.split("(")[0]}
+                <span className="city-name-white">{departureCity}</span> → <span className="city-name-white">{arrivalCity}</span>
               </h2>
               <p className="flight-subtitle">
                 {flight.airline_name || "Авиакомпания не указана"}
@@ -162,121 +210,111 @@ export default function FlightDetailsModal({ flight, onClose }) {
           </button>
         </div>
 
-        {/* Статус и прогресс */}
-        <div className="status-section">
-          <div className="status-badge-large" style={{ backgroundColor: statusColor }}>
-            {STATUS_LABELS[flight.status] || flight.status}
-          </div>
-          <div className="progress-container">
-            <div className="progress-bar">
-              <div 
-                className="progress-fill" 
-                style={{ 
-                  width: `${progress}%`,
-                  backgroundColor: statusColor
-                }}
-              />
-            </div>
-            <div className="progress-label">
-              {flight.status === "in_air" ? (
-                timeRemaining ? (
-                  <>До прибытия: {timeRemaining.hours}ч {timeRemaining.minutes}м</>
-                ) : (
-                  <>Прогресс полёта: {Math.round(progress)}%</>
-                )
-              ) : flight.status === "landed" ? (
-                "Рейс завершён"
-              ) : flight.status === "scheduled" ? (
-                "Ожидается вылет"
-              ) : (
-                "Рейс задержан"
-              )}
-            </div>
-          </div>
-        </div>
+                {/* Статус + общий прогресс */}
+        {/* Полноширинный статус */}
+<div 
+  className="status-fullwidth" 
+  style={{ backgroundColor: statusColor }}
+  onClick={onClose}
+>
+  <div className="status-fullwidth-content">
+    <span className="status-fullwidth-text">
+      {STATUS_LABELS[flight.status] || flight.status}
+    </span>
+  </div>
+</div>
 
-        {/* Маршрут с анимированным самолётом */}
+        {/* Маршрут: от аэропорта вылета до аэропорта прибытия */}
         <div className="route-section">
           <h3 className="card-title">Маршрут</h3>
-          <div className="route-visual">
-            {/* Аэропорт вылета */}
+          <div className="route-visual-simple">
+            {/* ЛЕВЫЙ БЛОК – ОТКУДА */}
             <div className="airport-info departure">
-              <div className="airport-code-large">{flight.departure_airport}</div>
-              <div className="airport-city">{departureCity}</div>
+              <div className="airport-code-large white-text">
+                {flight.departure_airport}
+              </div>
+              <div className="airport-city white-text">{departureCityFull}</div>
               <div className="time-display">
-                <span className="time-label">Вылет</span>
-                <span className="time-value">{formatTimeOnly(flight.departure_time)}</span>
+                <span className="time-label white-text">Вылет</span>
+                <span className="time-value white-text">
+                  {formatTimeOnly(flight.departure_time)}
+                </span>
               </div>
             </div>
 
-            {/* Линия маршрута с самолётом */}
-            <div className="route-line-container">
-              <div className="route-line">
-                <div className="line-background"></div>
-                <div 
-                  className="plane-marker"
-                  style={{ left: `${progress}%` }}
-                >
-                  <div className="plane-icon">✈</div>
-                  <div className="plane-tooltip">
-                    Пройдено: {Math.round(progress)}%
-                  </div>
-                </div>
-                
-                {/* Время в пути */}
-                <div className="duration-display">
-                  {flightDuration.hours}ч {flightDuration.minutes}м
-                </div>
-                
-                {/* Маркеры времени */}
-                <div className="time-marker start" style={{ left: "0%" }}>
-                  <div className="marker-dot"></div>
-                  <div className="marker-label">Вылет</div>
-                </div>
-                <div className="time-marker current" style={{ left: `${progress}%` }}>
-                  <div className="marker-dot"></div>
-                  <div className="marker-label">Сейчас</div>
-                </div>
-                <div className="time-marker end" style={{ left: "100%" }}>
-                  <div className="marker-dot"></div>
-                  <div className="marker-label">Прилёт</div>
-                </div>
+            {/* СРЕДНЯЯ ПОЛОСА – ПРОГРЕСС БАР */}
+            <div className="route-line-simple">
+              <div className="simple-progress-bar">
+                <div className="simple-progress-fill" style={{ width: `${visualProgress}%` }} />
               </div>
               
-              {/* Статус времени */}
-              <div className="time-status">
-                {flight.status === "in_air" ? (
-                  <div className="time-remaining">
-                    <span className="time-remaining-label">Осталось:</span>
-                    <span className="time-remaining-value">
-                      {timeRemaining ? `${timeRemaining.hours}ч ${timeRemaining.minutes}м` : "—"}
-                    </span>
-                  </div>
-                ) : (
-                  <div className="time-status-text">
-                    {flight.status === "scheduled" ? "Рейс ожидает вылета" : 
-                     flight.status === "landed" ? "Рейс завершён" : 
-                     flight.status === "delayed" ? "Рейс задержан" : 
-                     flight.status === "cancelled" ? "Рейс отменён" : 
-                     "Рейс на посадке"}
-                  </div>
-                )}
+              {/* Текст под прогресс-баром */}
+              <div className="route-middle-info">
+                <div className="remaining-time">
+                  <span className="remaining-label white-text">Осталось:</span>
+                  <span className="remaining-value white-text">
+                    {flight.status === "in_air" && timeRemaining
+                      ? `${timeRemaining.hours}ч ${timeRemaining.minutes}м`
+                      : "—"}
+                  </span>
+                </div>
               </div>
             </div>
 
-            {/* Аэропорт прибытия */}
+            {/* ПРАВЫЙ БЛОК – КУДА */}
             <div className="airport-info arrival">
-              <div className="airport-code-large">{flight.arrival_airport}</div>
-              <div className="airport-city">{arrivalCity}</div>
-              <div className="time-display">
-                <span className="time-label">Прилёт</span>
-                <span className="time-value">{formatTimeOnly(flight.arrival_time)}</span>
+              <div className="airport-code-large white-text">
+                {flight.arrival_airport}
               </div>
+              <div className="airport-city white-text">{arrivalCityFull}</div>
+              <div className="time-display">
+                <span className="time-label white-text">Прилёт</span>
+                <span className="time-value white-text">
+                  {formatTimeOnly(flight.arrival_time)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Компактная полоса статистики по маршруту */}
+          <div className="route-stats-strip-simple">
+            <div className="route-stat-simple route-stat--from">
+              <span className="route-stat-label-simple">Вылет</span>
+              <span className="route-stat-value-simple">
+                {formatTimeOnly(flight.departure_time)}
+              </span>
+              <span className="route-stat-hint-simple white-text">
+                {flight.departure_airport} · {departureCity}
+              </span>
+            </div>
+
+            <div className="route-stat-simple route-stat--middle">
+              <span className="route-stat-label-simple">В пути</span>
+              <span className="route-stat-value-simple">
+                {flightDuration.hours}ч {flightDuration.minutes}м
+              </span>
+              <span className="route-stat-hint-simple white-text">
+                Пройдено {Math.round(visualProgress)}%
+              </span>
+            </div>
+
+            <div className="route-stat-simple route-stat--to">
+              <span className="route-stat-label-simple">
+                {flight.status === "in_air" ? "Осталось" : "Прибытие"}
+              </span>
+              <span className="route-stat-value-simple">
+                {flight.status === "in_air" && timeRemaining
+                  ? `${timeRemaining.hours}ч ${timeRemaining.minutes}м`
+                  : formatTimeOnly(flight.arrival_time)}
+              </span>
+              <span className="route-stat-hint-simple white-text">
+                {flight.arrival_airport} · {arrivalCity}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Детали рейса */}
+        {/* Детали рейса + хронология */}
         <div className="flight-info-grid">
           <div className="info-card details-card">
             <h3 className="card-title">Детали рейса</h3>
@@ -288,73 +326,60 @@ export default function FlightDetailsModal({ flight, onClose }) {
               <div className="detail-item">
                 <span className="detail-label">Авиакомпания:</span>
                 <span className="detail-value">
-                  {airlineLogo ? (
-                    <div className="airline-display">
-                      <img src={airlineLogo} alt={airlineCode} className="small-airline-logo" />
-                      <span>{flight.airline_name}</span>
-                    </div>
-                  ) : (
-                    flight.airline_name || "Не указана"
-                  )}
+                  {flight.airline_name || "Не указана"}
                 </span>
               </div>
               <div className="detail-item">
                 <span className="detail-label">Тип самолёта:</span>
                 <span className="detail-value">
                   <div className="aircraft-display">
-                    <img src={aircraftImage} alt="Aircraft" className="aircraft-icon" />
+                    <img
+                      src={aircraftImage}
+                      alt="Aircraft"
+                      className="aircraft-icon"
+                    />
                     {flight.aircraft_type || "Не указан"}
                   </div>
                 </span>
               </div>
               <div className="detail-item">
-                <span className="detail-label">Статус:</span>
-                <span className="detail-value" style={{ color: statusColor }}>
-                  {STATUS_LABELS[flight.status] || flight.status}
-                </span>
-              </div>
+  <span className="detail-label">
+    {flight.status === "landed" ? "Время полёта:" : "Примерное время:"}
+  </span>
+  <span className="detail-value flight-duration-value">
+    {flightDuration.hours}ч {flightDuration.minutes}м
+  </span>
+</div>
             </div>
           </div>
 
           <div className="info-card timeline-card">
-            <h3 className="card-title">Хронология</h3>
-            <div className="timeline-mini">
-              <div className="timeline-item completed">
-                <div className="timeline-dot" style={{ backgroundColor: statusColor }}></div>
-                <div className="timeline-content">
-                  <div className="timeline-time">{formatTimeOnly(flight.departure_time)}</div>
-                  <div className="timeline-event">Вылет из {flight.departure_airport}</div>
-                </div>
-              </div>
-              {(flight.status === "in_air" || flight.status === "landed") && (
-                <div className="timeline-item active">
-                  <div className="timeline-dot pulse" style={{ backgroundColor: statusColor }}></div>
-                  <div className="timeline-content">
-                    <div className="timeline-time">Сейчас</div>
-                    <div className="timeline-event">В воздухе</div>
+            <h3 className="card-title">Хронология рейса</h3>
+            <div className="timeline-detailed-simple">
+              {timelineItems.map((item, index) => (
+                <div 
+                  key={index} 
+                  className={`timeline-item-simple ${item.status}`}
+                >
+                  <div className="timeline-icon-simple">{item.icon}</div>
+                  <div className="timeline-content-simple">
+                    <div className="timeline-header-simple">
+                      <span className="timeline-time-simple">{item.time}</span>
+                      <span className={`timeline-status-simple ${item.status}`}>
+                        {item.status === "completed" ? "✓ Выполнено" : 
+                         item.status === "active" ? "⏳ Сейчас" : 
+                         item.status === "delayed" ? "⚠ Задержка" : "⏱ Ожидается"}
+                      </span>
+                    </div>
+                    <div className="timeline-event-simple">{item.event}</div>
+                    {item.description && (
+                      <div className="timeline-description-simple">{item.description}</div>
+                    )}
                   </div>
                 </div>
-              )}
-              <div className={`timeline-item ${flight.status === "landed" ? "completed" : "upcoming"}`}>
-                <div className="timeline-dot"></div>
-                <div className="timeline-content">
-                  <div className="timeline-time">{formatTimeOnly(flight.arrival_time)}</div>
-                  <div className="timeline-event">Прилёт в {flight.arrival_airport}</div>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
-        </div>
-
-        {/* Действия */}
-        <div className="actions-section">
-          <button className="action-button secondary">
-            <span className="action-icon">📍</span>
-            Отслеживание на карте
-          </button>
-          <button className="action-button ghost" onClick={onClose}>
-            Закрыть
-          </button>
         </div>
       </div>
     </div>
