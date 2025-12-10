@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict 28R97Da9wojtWyPdsVsctedaUjczzrZjgt1HHgM2Sag4mCOSlz5QTYS3tNp4eMJ
+\restrict 3wcaVc3ZxDQskMWF93wDcLArdoWuhfaYISUOSIVNtm37U6G1XN6Z5pmbVS04xat
 
 -- Dumped from database version 16.11 (Ubuntu 16.11-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.11 (Ubuntu 16.11-0ubuntu0.24.04.1)
@@ -43,6 +43,8 @@ COPY public.flights (id, flight_number, airline_code, departure_airport, arrival
 16	56823	\N	DME	VKO	2025-12-06 11:22:00+07	2025-12-06 17:22:00+07	scheduled	\N	\N	\N
 27	533523	S7	SVO	PUL	2025-12-07 20:52:00+07	2025-12-08 05:02:00+07	scheduled	Boeing 777	\N	S7 Airlines
 13	2425	\N	NUD	SVO	2025-12-05 22:23:00+07	2025-12-06 22:23:00+07	scheduled	\N	\N	\N
+28	324535	BA	SVO	OVB	2025-12-09 16:08:00+07	2025-12-09 20:08:00+07	in_air	Boeing 787	\N	British Airways
+29	43242	SU	VKO	VVO	2025-12-09 16:45:00+07	2025-12-10 02:45:00+07	scheduled	Airbus A320	\N	Аэрофлот
 \.
 
 
@@ -73,5 +75,5 @@ SELECT pg_catalog.setval('public.users_id_seq', 1, true);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 28R97Da9wojtWyPdsVsctedaUjczzrZjgt1HHgM2Sag4mCOSlz5QTYS3tNp4eMJ
+\unrestrict 3wcaVc3ZxDQskMWF93wDcLArdoWuhfaYISUOSIVNtm37U6G1XN6Z5pmbVS04xat
 

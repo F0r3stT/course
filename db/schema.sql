@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict MYTMewPcvqe6a2xSqQlGTs6u5mV5cI1fAndy48gRBg4zgfXbe2hatm9ObvSBlQd
+\restrict dZ8hJ3yBnMIVOr4wN0ihX210Iek8eK3bEKQT0xrq09pUXTBZikXj35HbFohhQeY
 
 -- Dumped from database version 16.11 (Ubuntu 16.11-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.11 (Ubuntu 16.11-0ubuntu0.24.04.1)
@@ -198,5 +198,5 @@ GRANT SELECT ON TABLE public.users TO flights_analytics;
 -- PostgreSQL database dump complete
 --
 
-\unrestrict MYTMewPcvqe6a2xSqQlGTs6u5mV5cI1fAndy48gRBg4zgfXbe2hatm9ObvSBlQd
+\unrestrict dZ8hJ3yBnMIVOr4wN0ihX210Iek8eK3bEKQT0xrq09pUXTBZikXj35HbFohhQeY
 
