@@ -48,30 +48,39 @@ body {
   z-index: 100;
 }
 
-.header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  max-width: 1920px;   /* можно убрать или изменить, если нужно */
-  margin: 0 auto;
-  padding: 0 24px;
-  box-sizing: border-box;
-}
 
-
-.logo {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: var(--primary);
+.nav-link {
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
   text-decoration: none;
-  display: flex;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: rgba(15, 23, 42, 0.4);
+  color: #e5e7eb;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
-.logo:hover {
-  color: var(--primary-dark);
+.nav-link:hover {
+  background: rgba(37, 99, 235, 0.85);
+  border-color: rgba(37, 99, 235, 1);
+  color: #ffffff;
+}
+
+.nav-link-primary {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border-color: transparent;
+  color: #ffffff;
+}
+
+.nav-link-primary:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+}
+
+.nav-link-secondary {
+  background: rgba(15, 23, 42, 0.6);
 }
 
 .nav {
@@ -110,6 +119,28 @@ body {
   display: inline-block;
   transition: var(--transition);
   font-weight: 500;
+}
+
+/* Крупная современная кнопка входа в шапке */
+.btn-login {
+  padding: 0.7rem 1.8rem;
+  font-size: 1rem;
+  border-radius: 999px; /* «пилюля» */
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 8px 20px rgba(115, 106, 167, 0.35);
+}
+
+/* Переопределяем глобальное отключение анимаций именно для этой кнопки */
+.app-header .btn-login {
+  transition: all 0.2s ease;
+}
+
+.app-header .btn-login:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.45);
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
 }
 
 .btn-primary {
@@ -367,13 +398,7 @@ body {
 }
 
 
-/* Header для Layout */
-.header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 0;
-}
+
 
 .logo {
   font-size: 1.5rem;
@@ -382,9 +407,12 @@ body {
   text-decoration: none;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
+.logo:hover {
+  color: var(--primary-dark);
+}
 .logo-icon {
   font-size: 1.4rem;
   width: 32px;
@@ -409,23 +437,6 @@ body {
   }
 }
 
-
-.nav {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-.nav a {
-  text-decoration: none;
-  color: var(--text-primary);
-  transition: var(--transition);
-  font-weight: 500;
-}
-
-.nav a:hover {
-  color: var(--primary);
-}
 
 .user-info {
   display: flex;
@@ -628,32 +639,13 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  max-width: 1200px;
+  width: 100%;
+  max-width: 1920px;   /* можно убрать или изменить, если нужно */
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 1px;
+  box-sizing: border-box;
 }
 
-.logo {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: var(--primary);
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.nav {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-.nav a {
-  text-decoration: none;
-  color: var(--text-primary);
-  font-weight: 500;
-}
 
 .user-section {
   display: flex;
@@ -671,6 +663,16 @@ body {
   padding: 2px 8px;
   border-radius: 12px;
   font-size: 0.8rem;
+}
+/* Подсветка логина в верхней шапке */
+.app-header .user-name {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .btn-logout {

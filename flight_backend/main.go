@@ -122,17 +122,15 @@ func main() {
 				log.Printf("❌ scan flight error: %v", err)
 				continue
 			}
-			// авто-обновление статуса (см. пункт 3)
-			if f.Status == "scheduled" || f.Status == "in_air" || f.Status == "landed" {
+			if f.Status == "scheduled" || f.Status == "in_air" || f.Status == "landed" || f.Status == "delayed" {
 				if now.After(f.ArrivalTime) {
 					f.Status = "landed"
 				} else if now.After(f.DepartureTime) {
 					f.Status = "in_air"
-				} else {
+				} else if f.Status != "delayed" {
 					f.Status = "scheduled"
 				}
 			}
-
 			// длительность в минутах
 			duration := int(f.ArrivalTime.Sub(f.DepartureTime).Minutes())
 			if duration < 0 {
@@ -296,7 +294,8 @@ func main() {
 		}
 
 		var req struct {
-			Status string `json:"status"`
+			Status       string `json:"status"`
+			DelayMinutes int    `json:"delay_minutes"`
 		}
 
 		if err := c.ShouldBindJSON(&req); err != nil || req.Status == "" {
@@ -313,24 +312,57 @@ func main() {
 		}
 
 		ctxReq := c.Request.Context()
-		cmdTag, err := pool.Exec(ctxReq,
-			"UPDATE flights SET status = $1 WHERE id = $2",
-			req.Status, id,
-		)
-		if err != nil {
-			log.Printf("❌ update flight status error: %v", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "database error"})
-			return
-		}
 
-		if cmdTag.RowsAffected() == 0 {
-			c.JSON(http.StatusNotFound, gin.H{"error": "flight not found"})
-			return
+		if req.Status == "delayed" && req.DelayMinutes > 0 {
+			// Сдвигаем время вылета и прилёта на указанное количество минут
+			cmdTag, err := pool.Exec(ctxReq, `
+            UPDATE flights
+        SET 
+            status = $1,
+            original_departure_time = COALESCE(original_departure_time, departure_time),
+            original_arrival_time   = COALESCE(original_arrival_time, arrival_time),
+            departure_time = departure_time + make_interval(mins => $2),
+            arrival_time   = arrival_time   + make_interval(mins => $2)
+        WHERE id = $3
+        `, req.Status, req.DelayMinutes, id)
+			if err != nil {
+				log.Printf("❌ update flight status (delay) error: %v", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "database error"})
+				return
+			}
+			if cmdTag.RowsAffected() == 0 {
+				c.JSON(http.StatusNotFound, gin.H{"error": "flight not found"})
+				return
+			}
+		} else {
+			// Обычное обновление статуса без сдвига времени
+			cmdTag, err := pool.Exec(ctxReq, `
+        UPDATE flights
+        SET 
+            status = $1,
+            departure_time = COALESCE(original_departure_time, departure_time),
+            arrival_time   = COALESCE(original_arrival_time, arrival_time),
+            original_departure_time = NULL,
+            original_arrival_time   = NULL
+        WHERE id = $2
+    `,
+				req.Status, id,
+			)
+			if err != nil {
+				log.Printf("❌ update flight status error: %v", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "database error"})
+				return
+			}
+			if cmdTag.RowsAffected() == 0 {
+				c.JSON(http.StatusNotFound, gin.H{"error": "flight not found"})
+				return
+			}
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"id":     id,
-			"status": req.Status,
+			"id":            id,
+			"status":        req.Status,
+			"delay_minutes": req.DelayMinutes,
 		})
 	})
 	// Создание рейса

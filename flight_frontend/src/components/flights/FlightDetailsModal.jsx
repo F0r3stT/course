@@ -2,7 +2,7 @@
 import React from "react";
 import { getCityByAirportCode } from "../../utils/airports.js";
 import { useFlightProgress } from "../../hooks/useFlightProgress";
-import "./FlightsDetailsModal.css";
+import "./FlightDetailsModal.css";
 
 const STATUS_LABELS = {
   scheduled: "По расписанию",
@@ -95,7 +95,7 @@ export default function FlightDetailsModal({ flight, onClose }) {
   const { progress, timeRemaining } = useFlightProgress(
     flight.departure_time,
     flight.arrival_time,
-    flight.status === "in_air"
+    flight.status
   );
 
   const flightDuration = getFlightDuration(
@@ -103,7 +103,24 @@ export default function FlightDetailsModal({ flight, onClose }) {
     flight.arrival_time
   );
   const aircraftImage = getAircraftImage(flight.aircraft_type);
-  const statusColor = STATUS_COLORS[flight.status] || "#6b7280";
+    const totalMinutesRemaining =
+    timeRemaining != null
+      ? timeRemaining.hours * 60 + timeRemaining.minutes
+      : null;
+
+
+  let visualStatus = flight.status;
+
+  if (
+    flight.status === "in_air" &&
+    totalMinutesRemaining != null &&
+    totalMinutesRemaining > 0 &&
+    totalMinutesRemaining <= 15
+  ) {
+    visualStatus = "boarding"; 
+  }
+
+  const statusColor = STATUS_COLORS[visualStatus] || "#6b7280";
 
   // Визуальный прогресс по линии
   const visualProgressRaw =
@@ -164,10 +181,30 @@ export default function FlightDetailsModal({ flight, onClose }) {
       items.push({
         time: "Сейчас",
         event: "В воздухе",
-        status: "active",
+        status:
+          totalMinutesRemaining != null && totalMinutesRemaining <= 15
+            ? "completed" // когда уже идёт посадка
+            : "active",
         icon: "🌤️"
       });
     }
+    const landingApproachTime = new Date(
+      arrivalTime.getTime() - 15 * 60 * 1000
+    );
+    items.push({
+      time: formatDateTime(landingApproachTime),
+      event: `Приземление в ${flight.arrival_airport}`,
+      status:
+        flight.status === "landed"
+          ? "completed"
+          : totalMinutesRemaining != null && totalMinutesRemaining <= 15
+          ? "active"
+          : now >= landingApproachTime
+          ? "completed"
+          : "upcoming",
+      icon: "🛬",
+      description: arrivalCityFull
+    });
 
     // Прибытие
     items.push({
@@ -215,11 +252,10 @@ export default function FlightDetailsModal({ flight, onClose }) {
 <div 
   className="status-fullwidth" 
   style={{ backgroundColor: statusColor }}
-  onClick={onClose}
 >
   <div className="status-fullwidth-content">
     <span className="status-fullwidth-text">
-      {STATUS_LABELS[flight.status] || flight.status}
+      {STATUS_LABELS[visualStatus] || visualStatus}
     </span>
   </div>
 </div>

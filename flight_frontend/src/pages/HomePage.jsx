@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext.jsx";
 import AirportSelector from "../components/flights/AirportSelector.jsx";
@@ -11,7 +11,6 @@ import FlightSearch from "../components/flights/FlightSearch.jsx";
 import FlightSearchResults from "../components/flights/FlightSearchResults.jsx";
 import "../components/flights/FlightSearch.css";
 import "../components/flights/FlightSearchResults.css";
-import AnimatedStats from "../components/common/AnimatedStats.jsx";
 
 
 import { AIRPORT_TO_CITY } from "../utils/airports.js"; // Импортируем из общего файла
@@ -22,15 +21,21 @@ const API_BASE = "http://localhost:8080";
 
 export default function HomePage() {
   const { user } = useAuth();
-  const navigate = useNavigate();
-
   const [stats, setStats] = useState({
     totalFlights: 0,
     activeFlights: 0,
     airports: 0,
     airlines: 0,
   });
-
+  const scrollToBoard = () => {
+    const el = document.getElementById("flight-board");
+    if (el) {
+      el.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  };
   
   const [featuredFlights, setFeaturedFlights] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -222,27 +227,32 @@ const [boardAnimation, setBoardAnimation] = useState("");
             </p>
 
   <div className="hero-actions">
-  {!user ? (
-    <>
-      <Link to="/login" className="btn btn-primary btn-large">
-        <i className="icon-lock"></i>
-        Вход для сотрудников
-      </Link>
-      <button 
-        className="btn btn-outline btn-large"
-        onClick={() => navigate('/flights')}
-        style={{
-          background: 'transparent',
-          border: '2px solid white',
-          color: 'white',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}
-      >
-        <i className="icon-board" style={{fontSize: '1.2rem'}}>📋</i>
-        Посмотреть табло
-      </button>
+        {!user ? (
+          <>
+            <Link to="/login" className="btn btn-primary btn-large">
+              <i className="icon-lock"></i>
+              Вход для сотрудников
+            </Link>
+
+            {/* Кнопка "Посмотреть табло" теперь скроллит к секции табло */}
+            <button
+              className="btn btn-outline btn-large"
+              type="button"
+              onClick={scrollToBoard}
+              style={{
+                background: "transparent",
+                border: "2px solid white",
+                color: "white",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
+              <i className="icon-board" style={{ fontSize: "1.2rem" }}>
+                📋
+              </i>
+              Посмотреть табло
+            </button>
       <a 
         href="#flight-search" 
         className="btn btn-outline btn-large"
@@ -275,7 +285,6 @@ const [boardAnimation, setBoardAnimation] = useState("");
           </div>
 
           <div className="hero-stats">
-             <AnimatedStats stats={stats} />
             <div className="stats-grid">
               <div className="stat-card">
                 <div className="stat-icon">✈</div>
@@ -328,7 +337,7 @@ const [boardAnimation, setBoardAnimation] = useState("");
       </section>
 
       {/* Табло рейсов */}
-      <section className="board-section">
+      <section className="board-section" id="flight-board">
         <div className="container">
           <div className="section-header">
             <h2 className="section-title">Табло рейсов</h2>

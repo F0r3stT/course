@@ -1,123 +1,100 @@
-import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
-import { jwtDecode } from 'jwt-decode';
+// src/context/AuthContext.jsx
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 const AuthContext = createContext(null);
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
-  return context;
-};
+// ключ, под которым данные будут лежать в localStorage
+const STORAGE_KEY = "flightboard_auth";
 
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // флаг, чтобы не редиректить, пока восстанавливаемся из localStorage
+  const [initializing, setInitializing] = useState(true);
 
-  // Проверка токена при загрузке
+  // 1) один раз при старте читаем из localStorage
   useEffect(() => {
-    const storedToken = localStorage.getItem('authToken');
-    const storedUser = localStorage.getItem('authUser');
-
-    if (storedToken && storedUser) {
-      try {
-        const decoded = jwtDecode(storedToken);
-        
-        // Проверка срока действия токена
-        if (decoded.exp * 1000 > Date.now()) {
-          setToken(storedToken);
-          setUser(JSON.parse(storedUser));
-        } else {
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('authUser');
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed?.user && parsed?.token) {
+          setUser(parsed.user);
+          setToken(parsed.token);
         }
-      } catch (error) {
-        console.error('Error parsing stored auth data:', error);
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('authUser');
       }
+    } catch (e) {
+      console.error("[Auth] error reading from localStorage", e);
+    } finally {
+      setInitializing(false);
     }
-
-    setIsLoading(false);
   }, []);
 
-  const login = useCallback(async (username, password) => {
+  // 2) при каждом изменении user/token записываем/очищаем localStorage
+  useEffect(() => {
+    if (initializing) return;
     try {
-      setError(null);
-      
-      const response = await fetch('http://localhost:8080/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
+      if (user && token) {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({ user, token })
+        );
+      } else {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    } catch (e) {
+      console.error("[Auth] error writing to localStorage", e);
+    }
+  }, [user, token, initializing]);
+
+  // 3) логин через бэкенд
+  async function login(username, password) {
+    const res = await fetch("http://localhost:8080/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(text || "Ошибка авторизации");
+    }
+
+    const data = await res.json().catch(() => ({}));
+
+    // адаптируй под ответ твоего бэкенда
+    const authUser =
+      data.user ??
+      ({
+        id: data.id ?? 1,
+        username,
+        role: data.role ?? "admin",
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Login failed');
-      }
+    const authToken =
+      data.token ?? data.jwt ?? data.access_token ?? "mock-token";
 
-      const data = await response.json();
-      
-      // Сохраняем данные
-      setUser(data.user);
-      setToken(data.token);
-      
-      // Сохраняем в localStorage
-      localStorage.setItem('authToken', data.token);
-      localStorage.setItem('authUser', JSON.stringify(data.user));
-      
-      return { success: true, data };
-    } catch (error) {
-      setError(error.message);
-      console.error('Login error:', error);
-      throw error;
-    }
-  }, []);
+    setUser(authUser);
+    setToken(authToken);
+  }
 
-  const logout = useCallback(() => {
+  function logout() {
     setUser(null);
     setToken(null);
-    setError(null);
-    
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('authUser');
-    
-    window.location.href = '/';
-  }, []);
+  }
 
-  const hasPermission = useCallback((requiredRole) => {
-    if (!user) return false;
-    
-    const roleHierarchy = {
-      'viewer': 0,
-      'staff': 1,
-      'admin': 2,
-    };
-    
-    const userLevel = roleHierarchy[user.role] || 0;
-    const requiredLevel = roleHierarchy[requiredRole] || 0;
-    
-    return userLevel >= requiredLevel;
-  }, [user]);
-
-  const value = {
-    user,
-    token,
-    isLoading,
-    error,
-    login,
-    logout,
-    hasPermission,
-  };
+  const value = { user, token, login, logout, initializing };
 
   return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
   );
-};
+}
+
+export function useAuth() {
+  return useContext(AuthContext);
+}

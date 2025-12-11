@@ -1,10 +1,7 @@
 /* src/pages/Dashboard.css */
 
 .dashboard.full-height {
-  min-height: 100vh;
-  background: #f5f7fa;
-  display: flex;
-  flex-direction: column;
+  width: 100%;
 }
 
 /* HEADER */
@@ -110,14 +107,14 @@
   color: white;
 }
 
-/* MAIN */
 
 .dashboard-main {
   flex: 1;
   width: 100%;
-  padding: 24px;
+  padding: 24px 0 24px;   
   margin: 0;
   position: relative;
+  box-sizing: border-box;
 }
 
 /* TAB PANELS – один каркас, плавное переключение */
@@ -156,11 +153,12 @@
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  width: 100%;
 }
 
 .table-header {
   display: grid;
-  grid-template-columns: 100px 200px 150px 120px 120px 150px;
+  grid-template-columns: 0.8fr 1.4fr 1.4fr 2.2fr 1.3fr 1.3fr;
   gap: 16px;
   padding: 16px 24px;
   background: #f8fafc;
@@ -169,6 +167,17 @@
   color: #475569;
 }
 
+.table-row {
+  display: grid;
+  grid-template-columns: 0.8fr 1.4fr 1.4fr 2.2fr 1.3fr 1.3fr;
+  gap: 16px;
+  padding: 16px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  align-items: center;
+  background: #ffffff;
+}
+
+
 .table-body {
   max-height: 600px;
   overflow-y: auto;
@@ -176,7 +185,7 @@
 
 .table-row {
   display: grid;
-  grid-template-columns: 100px 200px 150px 120px 120px 150px;
+  grid-template-columns: 0.8fr 1.4fr 1.4fr 2.2fr 1.3fr 1.3fr;
   gap: 16px;
   padding: 16px 24px;
   border-bottom: 1px solid #f1f5f9;
@@ -223,9 +232,30 @@
 
 .route {
   display: flex;
+  flex-direction: column; /* теперь два ряда – коды и города */
+  gap: 4px;
+  font-weight: 600;
+}
+.route-row {
+  display: flex;
   align-items: center;
   gap: 8px;
-  font-weight: 600;
+}
+
+.airport {
+  font-size: 1.1rem;
+  color: #1e293b;
+}
+
+/* города под кодами */
+.route-cities {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: #64748b;
+}
+
+.city {
+  white-space: nowrap;
 }
 
 .airport {
@@ -449,6 +479,11 @@
   animation: spin 1s linear infinite;
 }
 
+.actions .status-control {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
 /* ANIMATION */
 
 @keyframes spin {

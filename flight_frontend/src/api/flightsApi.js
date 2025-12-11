@@ -58,15 +58,17 @@ export async function createFlight(flightData) {
 }
 
 // Обновление статуса рейса
-// Обновление статуса рейса
-export async function updateFlightStatus(flightId, status) {
+export async function updateFlightStatus(flightId, payload) {
+  const body =
+    typeof payload === "string" ? { status: payload } : payload;
+
   const res = await fetch(`${API_BASE}/api/flights/${flightId}/status`, {
-    method: 'PATCH',
+    method: "PATCH",
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("authToken")}`,
     },
-    body: JSON.stringify({ status })
+    body: JSON.stringify(body),
   });
 
   if (!res.ok) {

@@ -2,7 +2,7 @@
 import React from "react";
 import { AIRPORT_TO_CITY } from "../../utils/airports";
 
-export default function FlightSearchResults({ results = [] }) {
+export default function FlightSearchResults({ results = [], onSelectFlight }) {
   if (results.length === 0) {
     return null;
   }
@@ -14,24 +14,18 @@ export default function FlightSearchResults({ results = [] }) {
           Найдено рейсов: <span className="results-count">{results.length}</span>
         </h4>
       </div>
-            <div className="search-results-list">
-                {results.map((flight) => (
-                    <div
-                    key={flight.id}
-                    className="search-result-card"
-                    onClick={() => onSelectFlight && onSelectFlight(flight)}
-                    >
-                    {/* карточка рейса */}
-                    </div>
-                ))}
-                </div>
+            
       <div className="results-grid">
         {results.map((flight) => {
           const departureCity = AIRPORT_TO_CITY[flight.departure_airport] || flight.departure_airport;
           const arrivalCity = AIRPORT_TO_CITY[flight.arrival_airport] || flight.arrival_airport;
           
           return (
-            <div key={flight.id} className="result-card">
+            <div
+              key={flight.id}
+              className="result-card"
+              onClick={() => onSelectFlight && onSelectFlight(flight)}
+            >
               <div className="result-card-header">
                 <span className="flight-number-large">{flight.flight_number}</span>
                 <span className={`flight-status status-${flight.status}`}>

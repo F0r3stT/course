@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import "./LoginPage.css"; // Создайте этот файл
+import "./LoginPage.css";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -30,9 +30,10 @@ export default function LoginPage() {
 
   return (
     <div className="login-page">
+      {/* Анимированный фон на весь экран */}
       <div className="login-background">
-        <div className="login-clouds"></div>
-        <div className="login-radar"></div>
+        <div className="login-radar-glow"></div>
+        <div className="login-grid-lines"></div>
       </div>
       
       <div className="login-container">
@@ -44,7 +45,7 @@ export default function LoginPage() {
             </div>
             <h2 className="login-title">Вход в систему</h2>
             <p className="login-subtitle">
-              Система управления рейсами авиакомпаний
+              Панель управления авиарейсами
             </p>
           </div>
 
@@ -87,9 +88,6 @@ export default function LoginPage() {
                 <span className="checkmark"></span>
                 Запомнить меня
               </label>
-              <a href="#" className="forgot-password">
-                Забыли пароль?
-              </a>
             </div>
 
             {error && (
@@ -119,71 +117,15 @@ export default function LoginPage() {
               className="back-button"
               onClick={() => navigate(-1)}
             >
-              ← Вернуться назад
+              ← Назад
             </button>
           </form>
 
           <div className="login-footer">
             <p className="security-note">
               <span className="security-icon">🛡️</span>
-              Все данные защищены согласно GDPR и ISO 27001
+              Система защищена по стандарту ISO 27001
             </p>
-            <div className="login-hint">
-              <p><strong>Тестовые учетные данные:</strong></p>
-              <div className="credentials">
-              
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="login-sidebar">
-          <div className="sidebar-content">
-            <h3 className="sidebar-title">Безопасность системы</h3>
-            <div className="security-features">
-              <div className="feature">
-                <span className="feature-icon">🔐</span>
-                <div className="feature-text">
-                  <strong>Шифрование TLS 1.3</strong>
-                  <p>Все данные передаются по защищенному соединению</p>
-                </div>
-              </div>
-              <div className="feature">
-                <span className="feature-icon">👁️</span>
-                <div className="feature-text">
-                  <strong>Мониторинг доступа</strong>
-                  <p>Все действия пользователей записываются в аудит-лог</p>
-                </div>
-              </div>
-              <div className="feature">
-                <span className="feature-icon">⚡</span>
-                <div className="feature-text">
-                  <strong>Защита от брутфорса</strong>
-                  <p>Автоматическая блокировка при множественных попытках</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="system-status">
-              <div className="status-header">
-                <span className="status-icon">✅</span>
-                <span>Система активна</span>
-              </div>
-              <div className="status-details">
-                <div className="status-item">
-                  <span>API:</span>
-                  <span className="status-ok">Работает</span>
-                </div>
-                <div className="status-item">
-                  <span>База данных:</span>
-                  <span className="status-ok">Активна</span>
-                </div>
-                <div className="status-item">
-                  <span>Аутентификация:</span>
-                  <span className="status-ok">Готова</span>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>

@@ -1,7 +1,10 @@
 // src/pages/Dashboard.jsx
 import React, { useState, useEffect, useRef } from "react";
+import { getCityByAirportCode } from "../utils/airports";
 import { useAuth } from "../context/AuthContext";
 import CreateFlightTab from "../components/flights/CreateFlightTab.jsx";
+import DelayModal from "../components/common/DelayModal";
+
 import {
   fetchFlights,
   fetchAirlines,
@@ -16,6 +19,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("flights");
   const [statusUpdatingId, setStatusUpdatingId] = useState(null);
+  const [showDelayModal, setShowDelayModal] = useState(false);
+  const [selectedFlight, setSelectedFlight] = useState(null);
   const firstLoad = useRef(true);
   
   useEffect(() => {
@@ -47,22 +52,84 @@ async function loadData() {
     }
   }
 }
+function openDelayPopover(flight) {
+  setSelectedFlight(flight);
+  setShowDelayModal(true);
+}
+function handleConfirmDelay(minutes) {
+  // закрываем поповер в любом случае
+  setShowDelayModal(false);
 
-  async function handleChangeStatus(flightId, newStatus) {
-    try {
-      setStatusUpdatingId(flightId);
-      await updateFlightStatus(flightId, newStatus);
-
-      setFlights((prev) =>
-        prev.map((f) => (f.id === flightId ? { ...f, status: newStatus } : f))
-      );
-    } catch (err) {
-      console.error("Error updating flight status:", err);
-      alert(err.message || "Ошибка обновления статуса рейса");
-    } finally {
-      setStatusUpdatingId(null);
-    }
+  if (!selectedFlight || !minutes || minutes <= 0) {
+    return;
   }
+
+  // реальный вызов обновления статуса с задержкой
+  handleChangeStatus(selectedFlight, "delayed", minutes);
+}
+
+
+async function handleChangeStatus(flight, newStatus, manualDelayMinutes = 0) {
+  try {
+    setStatusUpdatingId(flight.id);
+
+    const payload = { status: newStatus };
+
+    // если это задержка и нам передали минуты — добавляем в payload
+    if (newStatus === "delayed" && manualDelayMinutes > 0) {
+  payload.delay_minutes = manualDelayMinutes;
+}
+    if (newStatus === "delayed" && manualDelayMinutes === 0) {
+      setSelectedFlight(flight);
+      setShowDelayModal(true);
+      setStatusUpdatingId(null); 
+      return;
+    }
+
+    await updateFlightStatus(flight.id, payload);
+
+    // локально обновляем flights
+    setFlights(prev =>
+      prev.map(f => {
+        if (f.id !== flight.id) return f;
+
+        const updated = { ...f, status: newStatus };
+
+        if (!f.original_departure_time) {
+          updated.original_departure_time = f.departure_time;
+          updated.original_arrival_time = f.arrival_time;
+        }
+
+        if (newStatus === "delayed" && manualDelayMinutes > 0) {
+          const delayMs = manualDelayMinutes * 60 * 1000;
+
+          updated.departure_time = new Date(
+            new Date(f.departure_time).getTime() + delayMs
+          ).toISOString();
+
+          updated.arrival_time = new Date(
+            new Date(f.arrival_time).getTime() + delayMs
+          ).toISOString();
+        }
+
+        if (f.status === "delayed" && newStatus !== "delayed") {
+          updated.departure_time =
+            f.original_departure_time || f.departure_time;
+          updated.arrival_time =
+            f.original_arrival_time || f.arrival_time;
+        }
+
+        return updated;
+      })
+    );
+  } catch (err) {
+    console.error("Error updating flight status:", err);
+    alert(err.message || "Ошибка обновления статуса рейса");
+  } finally {
+    setStatusUpdatingId(null);
+  }
+}
+
 
   const isAdmin = user && user.role === "admin";
 
@@ -86,22 +153,6 @@ async function loadData() {
               <h1>Панель управления</h1>
               <p className="subtitle">FlightBoard Pro</p>
             </div>
-          </div>
-
-          <div className="user-section">
-            {user ? (
-              <>
-                <div className="user-info">
-                  <span className="user-name">{user.username}</span>
-                  <span className="user-role">{user.role}</span>
-                </div>
-                <button onClick={logout} className="btn-logout">
-                  Выйти
-                </button>
-              </>
-            ) : (
-              <div className="guest-notice">Гостевой режим</div>
-            )}
           </div>
         </div>
 
@@ -154,49 +205,71 @@ async function loadData() {
                     </div>
 
                     <div className="table-cell route">
-                      <span className="airport">
-                        {flight.departure_airport}
-                      </span>
-                      <span className="separator">→</span>
-                      <span className="airport">{flight.arrival_airport}</span>
-                    </div>
-
-                    <div className="table-cell time">
-                      <div className="departure">
-                        Вылет: {formatTime(flight.departure_time)}
-                      </div>
-                      <div className="arrival">
-                        Прилёт: {formatTime(flight.arrival_time)}
-                      </div>
+                        {/* первая строка – коды аэропортов */}
+                        <div className="route-row">
+                          <span className="airport">{flight.departure_airport}</span>
+                          <span className="separator">→</span>
+                          <span className="airport">{flight.arrival_airport}</span>
                         </div>
 
-                    <div className="table-cell status">
-                      <span
-                        className={`status-badge status-${flight.status}`}
-                      >
-                        {getStatusText(flight.status)}
-                      </span>
-                    </div>
-
-                    {isAdmin && (
-                      <div className="table-cell actions">
-                        <select
-                          value={flight.status || "scheduled"}
-                          disabled={statusUpdatingId === flight.id}
-                          onChange={(e) =>
-                            handleChangeStatus(flight.id, e.target.value)
-                          }
-                          className="status-select"
-                        >
-                          <option value="scheduled">По расписанию</option>
-                          <option value="boarding">Посадка</option>
-                          <option value="in_air">В полёте</option>
-                          <option value="landed">Прибыл</option>
-                          <option value="delayed">Задержан</option>
-                          <option value="cancelled">Отменён</option>
-                        </select>
+                        {/* вторая строка – города */}
+                        <div className="route-row route-cities">
+                          <span className="city">
+                            {getCityByAirportCode(flight.departure_airport)}
+                          </span>
+                          <span className="separator">→</span>
+                          <span className="city">
+                            {getCityByAirportCode(flight.arrival_airport)}
+                          </span>
+                        </div>
                       </div>
-                    )}
+                    <div className="table-cell time">
+                    <div className="departure">
+                      Вылет: {formatDateTimeRu(flight.departure_time)}
+                    </div>
+                    <div className="arrival">
+                      Прилёт: {formatDateTimeRu(flight.arrival_time)}
+                    </div>
+                  </div>
+                   <div className="table-cell status">
+                  <span className={`status-badge status-${flight.status}`}>
+                    {getStatusText(flight.status)}
+                  </span>
+                </div>
+            
+                    {isAdmin && (
+                        <div className="table-cell actions">
+                          <div className="status-control">
+                            <select
+                              value={flight.status || "scheduled"}
+                              disabled={statusUpdatingId === flight.id}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                if (value === "delayed") {
+                                  openDelayPopover(flight);
+                                } else {
+                                  handleChangeStatus(flight, value);
+                                }
+                              }}
+                              className="status-select"
+                            >
+                              <option value="scheduled">По расписанию</option>
+                              <option value="boarding">Посадка</option>
+                              <option value="in_air">В полёте</option>
+                              <option value="landed">Прибыл</option>
+                              <option value="delayed">Задержан</option>
+                              <option value="cancelled">Отменён</option>
+                            </select>
+
+                            {/* ОДНА модалка на строку */}
+                            <DelayModal
+                              isOpen={showDelayModal && selectedFlight?.id === flight.id}
+                              onClose={() => setShowDelayModal(false)}
+                              onConfirm={handleConfirmDelay}
+                            />
+                          </div>
+                        </div>
+                      )}
                   </div>
                 ))}
               </div>
@@ -329,7 +402,20 @@ function getStatusText(status) {
   return statusMap[status] || status;
 }
 
-function formatTime(dateString) {
+function formatDateTimeRu(dateString) {
   const date = new Date(dateString);
-  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+  const datePart = date.toLocaleDateString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+
+  const timePart = date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  return `${datePart} ${timePart}`;
 }
+

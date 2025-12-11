@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict dZ8hJ3yBnMIVOr4wN0ihX210Iek8eK3bEKQT0xrq09pUXTBZikXj35HbFohhQeY
+\restrict 9cnw7qRMPkLrrVUJjRuxuDAznP4wWRGZ8to2BSENJg3APCMug5UyDy1PHoEMH02
 
 -- Dumped from database version 16.11 (Ubuntu 16.11-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.11 (Ubuntu 16.11-0ubuntu0.24.04.1)
@@ -23,7 +23,7 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- Name: airlines; Type: TABLE; Schema: public; Owner: flights_user
+-- Name: airlines; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.airlines (
@@ -32,10 +32,8 @@ CREATE TABLE public.airlines (
 );
 
 
-ALTER TABLE public.airlines OWNER TO flights_user;
-
 --
--- Name: flights; Type: TABLE; Schema: public; Owner: flights_user
+-- Name: flights; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.flights (
@@ -50,6 +48,8 @@ CREATE TABLE public.flights (
     aircraft_type character varying(50),
     gate_sector character varying(10),
     airline_name text,
+    original_departure_time timestamp with time zone,
+    original_arrival_time timestamp with time zone,
     CONSTRAINT flights_airline_code CHECK (((airline_code IS NULL) OR (length((airline_code)::text) = 2))),
     CONSTRAINT flights_arr_iata CHECK ((length((arrival_airport)::text) = 3)),
     CONSTRAINT flights_dep_iata CHECK ((length((departure_airport)::text) = 3)),
@@ -58,10 +58,8 @@ CREATE TABLE public.flights (
 );
 
 
-ALTER TABLE public.flights OWNER TO flights_user;
-
 --
--- Name: flights_id_seq; Type: SEQUENCE; Schema: public; Owner: flights_user
+-- Name: flights_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 ALTER TABLE public.flights ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
@@ -75,7 +73,7 @@ ALTER TABLE public.flights ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
 
 
 --
--- Name: users; Type: TABLE; Schema: public; Owner: flights_user
+-- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.users (
@@ -88,10 +86,8 @@ CREATE TABLE public.users (
 );
 
 
-ALTER TABLE public.users OWNER TO flights_user;
-
 --
--- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: flights_user
+-- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 ALTER TABLE public.users ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
@@ -105,7 +101,7 @@ ALTER TABLE public.users ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
 
 
 --
--- Name: airlines airlines_pkey; Type: CONSTRAINT; Schema: public; Owner: flights_user
+-- Name: airlines airlines_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.airlines
@@ -113,7 +109,7 @@ ALTER TABLE ONLY public.airlines
 
 
 --
--- Name: flights flights_pkey; Type: CONSTRAINT; Schema: public; Owner: flights_user
+-- Name: flights flights_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.flights
@@ -121,7 +117,7 @@ ALTER TABLE ONLY public.flights
 
 
 --
--- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: flights_user
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.users
@@ -129,7 +125,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- Name: users users_username_key; Type: CONSTRAINT; Schema: public; Owner: flights_user
+-- Name: users users_username_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.users
@@ -137,35 +133,35 @@ ALTER TABLE ONLY public.users
 
 
 --
--- Name: flights_arr_airport_idx; Type: INDEX; Schema: public; Owner: flights_user
+-- Name: flights_arr_airport_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX flights_arr_airport_idx ON public.flights USING btree (arrival_airport);
 
 
 --
--- Name: flights_arr_time_idx; Type: INDEX; Schema: public; Owner: flights_user
+-- Name: flights_arr_time_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX flights_arr_time_idx ON public.flights USING btree (arrival_time);
 
 
 --
--- Name: flights_dep_airport_idx; Type: INDEX; Schema: public; Owner: flights_user
+-- Name: flights_dep_airport_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX flights_dep_airport_idx ON public.flights USING btree (departure_airport);
 
 
 --
--- Name: flights_dep_time_idx; Type: INDEX; Schema: public; Owner: flights_user
+-- Name: flights_dep_time_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX flights_dep_time_idx ON public.flights USING btree (departure_time);
 
 
 --
--- Name: flights flights_airline_fk; Type: FK CONSTRAINT; Schema: public; Owner: flights_user
+-- Name: flights flights_airline_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.flights
@@ -173,7 +169,7 @@ ALTER TABLE ONLY public.flights
 
 
 --
--- Name: SCHEMA public; Type: ACL; Schema: -; Owner: pg_database_owner
+-- Name: SCHEMA public; Type: ACL; Schema: -; Owner: -
 --
 
 GRANT USAGE ON SCHEMA public TO flights_user;
@@ -181,14 +177,14 @@ GRANT USAGE ON SCHEMA public TO flights_analytics;
 
 
 --
--- Name: TABLE flights; Type: ACL; Schema: public; Owner: flights_user
+-- Name: TABLE flights; Type: ACL; Schema: public; Owner: -
 --
 
 GRANT SELECT ON TABLE public.flights TO flights_analytics;
 
 
 --
--- Name: TABLE users; Type: ACL; Schema: public; Owner: flights_user
+-- Name: TABLE users; Type: ACL; Schema: public; Owner: -
 --
 
 GRANT SELECT ON TABLE public.users TO flights_analytics;
@@ -198,5 +194,5 @@ GRANT SELECT ON TABLE public.users TO flights_analytics;
 -- PostgreSQL database dump complete
 --
 
-\unrestrict dZ8hJ3yBnMIVOr4wN0ihX210Iek8eK3bEKQT0xrq09pUXTBZikXj35HbFohhQeY
+\unrestrict 9cnw7qRMPkLrrVUJjRuxuDAznP4wWRGZ8to2BSENJg3APCMug5UyDy1PHoEMH02
 
