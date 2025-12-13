@@ -1,19 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-
 import { useAuth } from "../context/AuthContext.jsx";
 import AirportSelector from "../components/flights/AirportSelector.jsx";
 import WeatherWidget from "../components/common/WeatherWidget.jsx";
-
 import FlightsTable from "../components/flights/FlightsTable.jsx";
 import FlightDetailsModal from "../components/flights/FlightDetailsModal.jsx";
 import FlightSearch from "../components/flights/FlightSearch.jsx";
 import FlightSearchResults from "../components/flights/FlightSearchResults.jsx";
+
 import "../components/flights/FlightSearch.css";
 import "../components/flights/FlightSearchResults.css";
 
-
-import { AIRPORT_TO_CITY } from "../utils/airports.js"; // Импортируем из общего файла
+import { AIRPORT_TO_CITY } from "../utils/airports.js";
 
 import "./HomePage.css";
 
@@ -27,6 +25,7 @@ export default function HomePage() {
     airports: 0,
     airlines: 0,
   });
+  
   const scrollToBoard = () => {
     const el = document.getElementById("flight-board");
     if (el) {
@@ -46,11 +45,8 @@ export default function HomePage() {
   const [selectedFlight, setSelectedFlight] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
 
-
   const [showBoard, setShowBoard] = useState(false);
-const [boardAnimation, setBoardAnimation] = useState("");
-
-  // ---------- Функции загрузки данных ----------
+  const [boardAnimation, setBoardAnimation] = useState("");
 
   const fetchStats = async () => {
     try {
@@ -72,11 +68,11 @@ const [boardAnimation, setBoardAnimation] = useState("");
   };
   const toggleBoard = () => {
   if (!showBoard) {
-    // открываем
+    //открываем
     setShowBoard(true);
     setBoardAnimation("home-board-animate-in");
 
-    // после рендера – плавный скролл к секции табло
+    //после рендера – плавный скролл к секции табло
     setTimeout(() => {
       const el = document.getElementById("flight-board-section");
       if (el) {
@@ -84,7 +80,7 @@ const [boardAnimation, setBoardAnimation] = useState("");
       }
     }, 50);
   } else {
-    // закрываем с анимацией
+    //закрываем с анимацией
     setBoardAnimation("home-board-animate-out");
     setTimeout(() => {
       setShowBoard(false);
@@ -107,6 +103,9 @@ const [boardAnimation, setBoardAnimation] = useState("");
 
     const map = new Map();
 
+    const sorted = Array.from(map.values()).sort(
+  (a, b) => b.flightsCount - a.flightsCount
+);
     featuredFlights.forEach((f) => {
       const key = `${f.departure_airport}-${f.arrival_airport}`;
       const existing = map.get(key);
@@ -148,6 +147,8 @@ const [boardAnimation, setBoardAnimation] = useState("");
   } finally {
     setLoading(false);
   }
+  const limit = Math.min(5, Math.max(3, sorted.length));
+return sorted.slice(0, limit);
 };
 
 
@@ -180,7 +181,6 @@ const [boardAnimation, setBoardAnimation] = useState("");
 };
   
 
-  // ---------- Инициализация и периодическое обновление ----------
 
   useEffect(() => {
     fetchStats();
@@ -195,15 +195,10 @@ const [boardAnimation, setBoardAnimation] = useState("");
     return () => clearInterval(interval);
   }, []);
 
-  // ---------- Обработчики ----------
-
   const handleQuickSearch = (searchData) => {
     console.log("Поиск рейсов:", searchData);
-    // Фильтруем рейсы на главной странице
-    // Реализация будет в компоненте FlightsTable
   };
 
-  // ---------- Рендер ----------
 
   return (
     <div className="home-page full-height">
@@ -248,21 +243,18 @@ const [boardAnimation, setBoardAnimation] = useState("");
                 gap: "8px",
               }}
             >
-              <i className="icon-board" style={{ fontSize: "1.2rem" }}>
-                📋
-              </i>
               Посмотреть табло
             </button>
-      <a 
-        href="#flight-search" 
-        className="btn btn-outline btn-large"
-        onClick={(e) => {
-          e.preventDefault();
-          document.getElementById('flight-search').scrollIntoView({ 
-            behavior: 'smooth' 
-          });
-        }}
-      >
+              <a 
+                href="#flight-search" 
+                className="btn btn-outline btn-large"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('flight-search').scrollIntoView({ 
+                    behavior: 'smooth' 
+                  });
+                }}
+              >
                     <i className="icon-search"></i>
                     Поиск рейсов
                   </a>
@@ -297,7 +289,7 @@ const [boardAnimation, setBoardAnimation] = useState("");
               <div className="stat-card">
                 <div className="stat-icon">🔄</div>
                 <div className="stat-value">{stats.activeFlights}</div>
-                <div className="stat-label">В воздухе</div>
+<div className="stat-label">Активных рейсов</div>
               </div>
 
               <div className="stat-card">
@@ -405,16 +397,7 @@ const [boardAnimation, setBoardAnimation] = useState("");
                     className="flight-card"
                     onClick={() => setSelectedFlight(flight)}
                   >
-                    <div className="flight-header">
-                      <span className="flight-number">
-                        {flight.flight_number}
-                      </span>
-                      <span
-                        className={`flight-status status-${flight.status}`}
-                      >
-                        {getStatusText(flight.status)}
-                      </span>
-                    </div>
+
 
                     <div className="flight-route">
                       <div className="route-segment">
@@ -432,7 +415,7 @@ const [boardAnimation, setBoardAnimation] = useState("");
 
                       <div className="route-line">
                         <div className="line"></div>
-                        <div className="plane-icon">✈</div>
+                        <div className="route-plane-icon">✈</div>
                       </div>
 
                       <div className="route-segment">
@@ -465,29 +448,11 @@ const [boardAnimation, setBoardAnimation] = useState("");
       </section>
 
       {/* Информация о системе */}
-      <section className="system-info-section">
-        <div className="container">
-          <WeatherWidget />
-
-          <div className="system-status">
-            <h3>Статус системы</h3>
-            <div className="status-indicators">
-              <div className="status-indicator status-ok">
-                <div className="status-dot"></div>
-                <span>API: Работает</span>
-              </div>
-              <div className="status-indicator status-ok">
-                <div className="status-dot"></div>
-                <span>База данных: Активна</span>
-              </div>
-              <div className="status-indicator status-ok">
-                <div className="status-dot"></div>
-                <span>Обновления: Авто</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+<section className="system-info-section">
+  <div className="container">
+    <WeatherWidget />
+  </div>
+</section>
     </div>
   );
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flight_backend/internal/middleware"
+	"flight_backend/internal/weather"
 	"log"
 	"net/http"
 	"os"
@@ -12,6 +13,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -20,6 +22,7 @@ func main() {
 	if dbURL == "" {
 		dbURL = "postgres://flights_user:password@localhost:5432/flights"
 	}
+	_ = godotenv.Load()
 
 	ctx := context.Background()
 	pool, err := pgxpool.New(ctx, dbURL)
@@ -39,6 +42,7 @@ func main() {
 
 	// Настройка Gin
 	r := gin.Default()
+
 	// Добавляем middleware безопасности
 	r.Use(middleware.SecurityHeaders())
 	r.Use(middleware.RequestThrottle(100, time.Minute)) // 100 запросов в минуту
@@ -47,12 +51,12 @@ func main() {
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:3000"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept", "Cache-Control"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
-
+	weather.RegisterRoutes(r)
 	// ===== ПУБЛИЧНЫЕ МАРШРУТЫ =====
 
 	// Health-check

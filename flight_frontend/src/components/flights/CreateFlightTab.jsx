@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { createFlight } from "../../api/flightsApi";
-import { AIRPORT_TO_CITY, getFlightDurationMinutes } from "../../utils/airports";
+import { AIRPORT_TO_CITY, getFlightDurationMinutes } from "../../utils/airports.js";
 import "./CreateFlightTab.css";
 
 const KNOWN_AIRPORT_CODES = Object.keys(AIRPORT_TO_CITY);
@@ -296,7 +296,6 @@ export default function CreateFlightTab({ onFlightCreated }) {
   return (
     <div className="create-flight-modern">
       <div className="create-flight-header">
-        <div className="header-icon">✈️</div>
         <h2 className="header-title">Создание нового рейса</h2>
         <p className="header-subtitle">
           Заполните все поля для добавления рейса в систему управления
@@ -330,7 +329,6 @@ export default function CreateFlightTab({ onFlightCreated }) {
               <label className="form-label">
                 Номер рейса *
                 <div className="input-with-icon">
-                  <span className="input-icon">🔢</span>
                   <input
                     type="text"
                     value={formData.flightNumber}
@@ -386,7 +384,6 @@ export default function CreateFlightTab({ onFlightCreated }) {
               <label className="form-label">
                 Тип самолёта *
                 <div className="input-with-icon">
-                  <span className="input-icon">✈️</span>
                   <select
                     value={formData.aircraftType}
                     onChange={(e) => setFormData(prev => ({ 
@@ -417,7 +414,6 @@ export default function CreateFlightTab({ onFlightCreated }) {
               <label className="form-label">
                 Аэропорт вылета *
                 <div className="input-with-icon">
-                  <span className="input-icon">📍</span>
                   <input
                     type="text"
                     value={formData.departureAirport}
@@ -446,7 +442,6 @@ export default function CreateFlightTab({ onFlightCreated }) {
               <label className="form-label">
                 Аэропорт прилёта *
                 <div className="input-with-icon">
-                  <span className="input-icon">🎯</span>
                   <input
                     type="text"
                     value={formData.arrivalAirport}
@@ -483,7 +478,6 @@ export default function CreateFlightTab({ onFlightCreated }) {
               <label className="form-label">
                 Вылет *
                 <div className="input-with-icon">
-                  <span className="input-icon">🛫</span>
                   <input
                     type="datetime-local"
                     value={formData.departureTime}
@@ -505,7 +499,6 @@ export default function CreateFlightTab({ onFlightCreated }) {
               <label className="form-label">
                 Прилёт *
                 <div className="input-with-icon">
-                  <span className="input-icon">🛬</span>
                   <input
                     type="datetime-local"
                     value={formData.arrivalTime}
@@ -566,7 +559,6 @@ export default function CreateFlightTab({ onFlightCreated }) {
               </>
             ) : (
               <>
-                <span className="btn-icon">✈️</span>
                 Создать рейс
               </>
             )}
@@ -592,11 +584,9 @@ export default function CreateFlightTab({ onFlightCreated }) {
               setSuccess("");
             }}
           >
-            <span className="btn-icon">🗑️</span>
             Очистить форму
           </button>
         </div>
-
         <div className="form-footer">
           <p className="form-note">
             <span className="note-icon">💡</span>

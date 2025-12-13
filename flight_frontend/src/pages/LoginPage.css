@@ -266,6 +266,10 @@
   animation: spin 1s linear infinite;
 }
 
+
+
+
+
 /* Сообщение об ошибке */
 .error-message {
   background: #fee2e2;

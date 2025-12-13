@@ -1,5 +1,5 @@
 // src/pages/LoginPage.jsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import "./LoginPage.css";
@@ -11,7 +11,17 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+ const [isLeaving, setIsLeaving] = useState(false);
+
   const [rememberMe, setRememberMe] = useState(false);
+
+
+  const goBackSmooth = () => {
+    setIsLeaving(true);
+    setTimeout(() => {
+      navigate("/", { replace: true });
+    }, 220); // длительность совпадает с CSS-анимацией
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,7 +39,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="login-page">
+    <div className={`login-page ${isLeaving ? "page-leave" : ""}`}>
       {/* Анимированный фон на весь экран */}
       <div className="login-background">
         <div className="login-radar-glow"></div>
@@ -113,12 +123,13 @@ export default function LoginPage() {
             </button>
 
             <button
-              type="button"
-              className="back-button"
-              onClick={() => navigate(-1)}
-            >
-              ← Назад
-            </button>
+                type="button"
+                className="back-button"
+                onClick={goBackSmooth}
+                disabled={loading}
+              >
+                Назад
+              </button>
           </form>
 
           <div className="login-footer">
