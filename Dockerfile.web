@@ -1,0 +1,20 @@
+# 1) build React (Vite)
+FROM node:20-alpine AS build
+WORKDIR /app
+
+COPY flight_frontend/package*.json ./
+RUN npm ci
+
+COPY flight_frontend/ ./
+RUN npm run build
+
+# 2) nginx serve SPA
+FROM nginx:alpine
+
+# SPA-конфиг (см. ниже nginx/default.conf)
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+
+# фронтовая сборка
+COPY --from=build /app/dist /usr/share/nginx/html
+
+EXPOSE 80

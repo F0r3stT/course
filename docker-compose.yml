@@ -1,35 +1,59 @@
 services:
-  backend:
-    build: ./flight_backend
-    environment:
-      - APP_ENV=dev
-      - DATABASE_URL=postgres://flights_user:password@db:5432/flights?sslmode=disable
-      - JWT_SECRET=super-secret-key-here
-      - JWT_TTL=1h
-      - LOGIN_RATE_RPS=3
-      - LOGIN_BURST=10
-      - CORS_ORIGIN=http://localhost:5173
-    depends_on:
-      - db
-    ports:
-      - "8080:8080"
-
   db:
     image: postgres:16
+    restart: unless-stopped
     environment:
-      - POSTGRES_USER=flights_user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=flights
-    ports:
-      - "5432:5432"
+      POSTGRES_DB: flights
+      POSTGRES_USER: flights_user
+      POSTGRES_PASSWORD: password
     volumes:
-      # 1) данные БД (чтобы не пропали между перезапусками)
       - db_data:/var/lib/postgresql/data
-      # 2) наши скрипты инициализации
-      - ./db/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
-      - ./db/flights_dump.sql:/docker-entrypoint-initdb.d/02_flights_dump.sql
-      # если есть seed_dev.sql — можно третьей строкой
-      # - ./db/seed_dev.sql:/docker-entrypoint-initdb.d/03_seed_dev.sql
+      - ./db/00_roles.sql:/docker-entrypoint-initdb.d/00_roles.sql:ro
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./db/flights_dump.sql:/docker-entrypoint-initdb.d/02_flights_dump.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flights_user -d flights"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build:
+      context: ./flight_backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: ./.env
+    environment:
+      DATABASE_URL: postgres://flights_user:password@db:5432/flights
+    depends_on:
+      db:
+        condition: service_healthy
+    expose:
+      - "8080"
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: web
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
 
 volumes:
   db_data:
+  caddy_data:
+  caddy_config:

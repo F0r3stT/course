@@ -72,7 +72,7 @@ export default function WeatherWidget({ fullBleed = true, title = "Погода 
     try {
       setLoading(true);
 
-      const response = await fetch(`${API_BASE}/api/weather`, {
+      const response = await fetch("/api/weather", {
         method: "GET",
         headers: { Accept: "application/json", "Cache-Control": "no-cache" },
       });

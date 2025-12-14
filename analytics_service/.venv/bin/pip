@@ -1,4 +1,4 @@
-#!/home/alex/course/analytics_service/.venv/bin/python3
+#!/home/user/course/analytics_service/.venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys

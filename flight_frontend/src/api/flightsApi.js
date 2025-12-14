@@ -2,7 +2,7 @@ const API_BASE = "http://localhost:8080";
 
 // Получение всех рейсов
 export async function fetchFlights() {
-  const res = await fetch(`${API_BASE}/api/flights`);
+  const res = await fetch("/api/flights");
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`Ошибка загрузки рейсов: ${text}`);
@@ -12,7 +12,7 @@ export async function fetchFlights() {
 
 // Получение всех авиакомпаний
 export async function fetchAirlines() {
-  const res = await fetch(`${API_BASE}/api/airlines`);
+  const res = await fetch("/api/airlines");
   if (!res.ok) {
     // Если эндпоинта нет, возвращаем статические данные
     return [
@@ -30,7 +30,7 @@ export async function fetchAirlines() {
 
 // Получение рейсов по авиакомпании
 export async function fetchAirlineFlights(airlineCode) {
-  const res = await fetch(`${API_BASE}/api/airlines/${airlineCode}/flights`);
+  const res = await fetch(`/api/airlines/${encodeURIComponent(airlineCode)}/flights`);
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`Ошибка загрузки рейсов авиакомпании: ${text}`);
@@ -40,11 +40,11 @@ export async function fetchAirlineFlights(airlineCode) {
 
 // Создание нового рейса
 export async function createFlight(flightData) {
-  const res = await fetch(`${API_BASE}/api/flights`, {
+  const res = await fetch("/api/flights", {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('authToken') || 'mock-token'}`
+      Authorization: `Bearer ${JSON.parse(localStorage.getItem("flightboard_auth") || "{}")?.token || ""}`,
     },
     body: JSON.stringify(flightData)
   });
@@ -59,14 +59,13 @@ export async function createFlight(flightData) {
 
 // Обновление статуса рейса
 export async function updateFlightStatus(flightId, payload) {
-  const body =
-    typeof payload === "string" ? { status: payload } : payload;
+  const body = typeof payload === "string" ? { status: payload } : payload;
 
-  const res = await fetch(`${API_BASE}/api/flights/${flightId}/status`, {
+  const res = await fetch(`/api/flights/${flightId}/status`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+      Authorization: `Bearer ${JSON.parse(localStorage.getItem("flightboard_auth") || "{}")?.token || ""}`,
     },
     body: JSON.stringify(body),
   });
@@ -75,6 +74,5 @@ export async function updateFlightStatus(flightId, payload) {
     const text = await res.text();
     throw new Error(`Ошибка обновления статуса: ${text}`);
   }
-
   return res.json();
 }

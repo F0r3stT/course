@@ -50,7 +50,7 @@ export default function HomePage() {
 
   const fetchStats = async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/stats`);
+      const res = await fetch("/api/stats");
       if (!res.ok) {
         throw new Error(`Ошибка /api/stats: ${res.status}`);
       }
@@ -134,7 +134,7 @@ export default function HomePage() {
   const fetchFeaturedFlights = async () => {
   try {
     setLoading(true);
-    const res = await fetch(`${API_BASE}/api/flights`);
+    const res = await fetch("/api/flights");
     if (!res.ok) {
       const text = await res.text();
       throw new Error(`Ошибка /api/flights: ${res.status} ${text}`);
@@ -157,7 +157,7 @@ return sorted.slice(0, limit);
   setBoardLoading(true);
 
   try {
-    const res = await fetch(`${API_BASE}/api/flights`);
+    const res = await fetch("/api/flights");
     console.log("[HomePage] /api/flights status =", res.status);
 
     const text = await res.text();
@@ -284,12 +284,6 @@ return sorted.slice(0, limit);
                   {stats.totalFlights.toLocaleString()}
                 </div>
                 <div className="stat-label">Всего рейсов</div>
-              </div>
-
-              <div className="stat-card">
-                <div className="stat-icon">🔄</div>
-                <div className="stat-value">{stats.activeFlights}</div>
-<div className="stat-label">Активных рейсов</div>
               </div>
 
               <div className="stat-card">
