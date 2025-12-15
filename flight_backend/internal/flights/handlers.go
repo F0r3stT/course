@@ -1,4 +1,4 @@
-package airlines
+package flights
 
 import (
 	"log"

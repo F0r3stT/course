@@ -139,13 +139,6 @@ export default function FlightDetailsModal({ flight, onClose }) {
     const arrivalTime = new Date(flight.arrival_time);
     const items = [];
 
-    // Планирование
-    items.push({
-      time: formatDateTime(flight.scheduled_time || flight.departure_time),
-      event: "Рейс запланирован",
-      status: "completed",
-      icon: "📅"
-    });
 
     // Регистрация (за 2 часа до вылета)
     const checkinTime = new Date(departureTime.getTime() - 2 * 60 * 60 * 1000);

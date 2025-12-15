@@ -56,6 +56,25 @@ export async function createFlight(flightData) {
   
   return res.json();
 }
+// Удаление рейса (только admin)
+export async function deleteFlight(flightId) {
+  const res = await fetch(`/api/flights/${flightId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${
+        JSON.parse(localStorage.getItem("flightboard_auth") || "{}")?.token || ""
+      }`,
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Ошибка удаления рейса: ${text}`);
+  }
+
+  return res.json();
+}
+
 
 // Обновление статуса рейса
 export async function updateFlightStatus(flightId, payload) {

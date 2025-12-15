@@ -2,6 +2,8 @@ services:
   db:
     image: postgres:16
     restart: unless-stopped
+    ports:
+      - "5433:5432"
     environment:
       POSTGRES_DB: flights
       POSTGRES_USER: flights_user
@@ -23,8 +25,12 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     env_file: ./.env
+    ports:
+      - "8080:8080"
     environment:
-      DATABASE_URL: postgres://flights_user:password@db:5432/flights
+      PORT: "8080"
+      DATABASE_URL: "postgres://flights_user:password@db:5432/flights?sslmode=disable"
+      JWT_SECRET: "supersecret"
     depends_on:
       db:
         condition: service_healthy
@@ -40,20 +46,7 @@ services:
     depends_on:
       - backend
 
-  caddy:
-    image: caddy:2-alpine
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      - web
 
 volumes:
   db_data:
-  caddy_data:
-  caddy_config:
+

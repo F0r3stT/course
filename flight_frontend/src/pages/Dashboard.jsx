@@ -9,6 +9,7 @@ import {
   fetchFlights,
   fetchAirlines,
   updateFlightStatus,
+  deleteFlight,
 } from "../api/flightsApi";
 import "./Dashboard.css";
 
@@ -20,6 +21,8 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("flights");
   const [statusUpdatingId, setStatusUpdatingId] = useState(null);
   const [showDelayModal, setShowDelayModal] = useState(false);
+  const [filterDate, setFilterDate] = useState("");   // YYYY-MM-DD
+  const [searchQuery, setSearchQuery] = useState(""); // строка поиска
   const [selectedFlight, setSelectedFlight] = useState(null);
   const firstLoad = useRef(true);
   
@@ -29,7 +32,34 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
   
+function toLocalYMD(dateString) {
+  const d = new Date(dateString);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+const canDelay = (status) => !["in_air", "landed", "cancelled"].includes(status);
 
+const filteredFlights = flights.filter((f) => {
+  if (filterDate && toLocalYMD(f.departure_time) !== filterDate) return false;
+
+  const q = searchQuery.trim().toLowerCase();
+  if (!q) return true;
+
+  const hay = [
+    f.flight_number,
+    f.airline_code,
+    f.airline_name,
+    f.departure_airport,
+    f.arrival_airport,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  return hay.includes(q);
+});
   
 async function loadData() {
   try {
@@ -129,6 +159,17 @@ async function handleChangeStatus(flight, newStatus, manualDelayMinutes = 0) {
     setStatusUpdatingId(null);
   }
 }
+async function handleDeleteFlight(flight) {
+  if (!window.confirm(`Удалить рейс ${flight.flight_number}?`)) return;
+
+  try {
+    await deleteFlight(flight.id);
+    setFlights((prev) => prev.filter((f) => f.id !== flight.id));
+  } catch (err) {
+    console.error("Error deleting flight:", err);
+    alert(err.message || "Ошибка удаления рейса");
+  }
+}
 
 
   const isAdmin = user && user.role === "admin";
@@ -183,6 +224,34 @@ async function handleChangeStatus(flight, newStatus, manualDelayMinutes = 0) {
             }`}
           >
             <div className="flights-table-container">
+            <div className="filters-bar">
+  <input
+    className="filter-input"
+    type="text"
+    placeholder="Поиск: номер, авиакомпания, аэропорт…"
+    value={searchQuery}
+    onChange={(e) => setSearchQuery(e.target.value)}
+  />
+
+  <input
+    className="filter-date"
+    type="date"
+    value={filterDate}
+    onChange={(e) => setFilterDate(e.target.value)}
+  />
+
+  <button
+    type="button"
+    className="btn-clear-filters"
+    onClick={() => {
+      setSearchQuery("");
+      setFilterDate("");
+    }}
+  >
+    Сброс
+  </button>
+</div>
+
               <div className="table-header">
                 <div className="header-cell">Рейс</div>
                 <div className="header-cell">Авиакомпания</div>
@@ -193,7 +262,7 @@ async function handleChangeStatus(flight, newStatus, manualDelayMinutes = 0) {
               </div>
 
               <div className="table-body">
-                {flights.map((flight) => (
+                {filteredFlights.map((flight) => (
                   <div key={flight.id} className="table-row">
                     <div className="table-cell flight-number">
                       {flight.flight_number}
@@ -245,7 +314,12 @@ async function handleChangeStatus(flight, newStatus, manualDelayMinutes = 0) {
                               disabled={statusUpdatingId === flight.id}
                               onChange={(e) => {
                                 const value = e.target.value;
+
                                 if (value === "delayed") {
+                                  if (!canDelay(flight.status)) {
+                                    alert("Нельзя ставить задержку: рейс уже в воздухе/приземлился/отменён.");
+                                    return;
+                                  }
                                   openDelayPopover(flight);
                                 } else {
                                   handleChangeStatus(flight, value);
@@ -257,7 +331,9 @@ async function handleChangeStatus(flight, newStatus, manualDelayMinutes = 0) {
                               <option value="boarding">Посадка</option>
                               <option value="in_air">В полёте</option>
                               <option value="landed">Прибыл</option>
-                              <option value="delayed">Задержан</option>
+                             <option value="delayed" disabled={!canDelay(flight.status)}>
+  Задержан
+</option>
                               <option value="cancelled">Отменён</option>
                             </select>
 
@@ -268,6 +344,14 @@ async function handleChangeStatus(flight, newStatus, manualDelayMinutes = 0) {
                               onConfirm={handleConfirmDelay}
                             />
                           </div>
+                           <button
+      type="button"
+      className="btn-delete-flight"
+      onClick={() => handleDeleteFlight(flight)}
+      disabled={statusUpdatingId === flight.id}
+    >
+      Удалить рейс
+    </button>
                         </div>
                       )}
                   </div>

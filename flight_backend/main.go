@@ -2,12 +2,13 @@ package main
 
 import (
 	"context"
+	"flight_backend/internal/auth"
 	"flight_backend/internal/middleware"
+	"flight_backend/internal/users"
 	"flight_backend/internal/weather"
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -17,12 +18,13 @@ import (
 )
 
 func main() {
+	_ = godotenv.Load()
+
 	// Простая конфигурация
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
 		dbURL = "postgres://flights_user:password@localhost:5432/flights"
 	}
-	_ = godotenv.Load()
 
 	ctx := context.Background()
 	pool, err := pgxpool.New(ctx, dbURL)
@@ -59,7 +61,9 @@ func main() {
 	}))
 	weather.RegisterRoutes(r)
 	// ===== ПУБЛИЧНЫЕ МАРШРУТЫ =====
-
+	usersRepo := users.NewPostgresRepository(pool)
+	authHandler := auth.NewHandler(usersRepo)
+	authHandler.RegisterRoutes(r)
 	// Health-check
 	r.GET("/api/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
@@ -68,7 +72,239 @@ func main() {
 			"time":    time.Now().UTC(),
 		})
 	})
+	authRequired := r.Group("/api")
+	authRequired.Use(middleware.AuthRequired())
 
+	{
+		// Обновление статуса рейса - только staff и admin
+		// Обновление статуса рейса - только staff и admin
+		authRequired.PATCH("/flights/:id/status", middleware.RequireRole("staff", "admin"), func(c *gin.Context) {
+			id := c.Param("id")
+
+			var req struct {
+				Status       string `json:"status" binding:"required"`
+				DelayMinutes int    `json:"delay_minutes"` // нужно только для delayed
+			}
+
+			if err := c.ShouldBindJSON(&req); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid JSON"})
+				return
+			}
+
+			ctxReq := c.Request.Context()
+
+			// ===== 1) СТАВИМ ЗАДЕРЖКУ =====
+			if req.Status == "delayed" {
+				if req.DelayMinutes <= 0 {
+					c.JSON(http.StatusBadRequest, gin.H{"error": "delay_minutes must be > 0 for delayed status"})
+					return
+				}
+
+				// 1.1) Сначала читаем текущий статус (до UPDATE!)
+				var currentStatus string
+				err := pool.QueryRow(ctxReq, `SELECT status FROM flights WHERE id = $1`, id).Scan(&currentStatus)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot fetch flight status"})
+					return
+				}
+
+				// 1.2) Запрещаем задержку, если уже в воздухе/прилетел/отменён
+				// Разрешаем: scheduled, boarding, delayed (чтобы можно было "добавить" задержку до вылета)
+				// Разрешаем задержку ТОЛЬКО до вылета
+				if currentStatus != "scheduled" && currentStatus != "boarding" {
+					c.JSON(http.StatusBadRequest, gin.H{
+						"error":          "нельзя поставить задержку: рейс уже в воздухе/приземлился/отменён или имеет неподходящий статус",
+						"current_status": currentStatus,
+					})
+					return
+				}
+
+				// 1.3) Сдвигаем времена + ставим delayed
+				cmd, err := pool.Exec(ctxReq, `
+            UPDATE flights
+            SET
+              original_departure_time = COALESCE(original_departure_time, departure_time),
+              original_arrival_time   = COALESCE(original_arrival_time, arrival_time),
+              departure_time          = departure_time + make_interval(mins => $1),
+              arrival_time            = arrival_time   + make_interval(mins => $1),
+              status                  = 'delayed'
+            WHERE id = $2
+        `, req.DelayMinutes, id)
+				if err != nil {
+					log.Printf("❌ delay flight error: %v", err)
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "database error"})
+					return
+				}
+				if cmd.RowsAffected() == 0 {
+					c.JSON(http.StatusNotFound, gin.H{"error": "flight not found"})
+					return
+				}
+
+				// 1.4) Таймер снятия "delayed": после задержки статус становится обычным,
+				// а времена остаются СДВИНУТЫМИ (рейс дальше идет "в своём темпе").
+				delayDuration := time.Duration(req.DelayMinutes) * time.Minute
+				go func(flightID string, delay time.Duration) {
+					time.Sleep(delay)
+					_, err := pool.Exec(context.Background(), `
+                UPDATE flights
+                SET status = 'scheduled',
+                    original_departure_time = NULL,
+                    original_arrival_time   = NULL
+                WHERE id = $1 AND status = 'delayed'
+            `, flightID)
+					if err != nil {
+						log.Printf("❌ auto undelay flight %s error: %v", flightID, err)
+					} else {
+						log.Printf("✅ Flight %s resumed after delay", flightID)
+					}
+				}(id, delayDuration)
+
+				c.JSON(http.StatusOK, gin.H{
+					"message":       "flight delayed",
+					"flight_id":     id,
+					"new_status":    "delayed",
+					"delay_minutes": req.DelayMinutes,
+				})
+				return
+			}
+
+			// ===== 2) ЕСЛИ РЕЙС БЫЛ delayed И МЫ ПЕРЕВОДИМ В ДРУГОЙ СТАТУС — ВОССТАНАВЛИВАЕМ original_* =====
+			cmd, err := pool.Exec(ctxReq, `
+        UPDATE flights
+        SET
+          status = $1,
+          departure_time = COALESCE(original_departure_time, departure_time),
+          arrival_time   = COALESCE(original_arrival_time, arrival_time),
+          original_departure_time = NULL,
+          original_arrival_time   = NULL
+        WHERE id = $2 AND status = 'delayed'
+    `, req.Status, id)
+			if err != nil {
+				log.Printf("❌ undelay flight error: %v", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "database error"})
+				return
+			}
+			if cmd.RowsAffected() > 0 {
+				c.JSON(http.StatusOK, gin.H{"message": "status updated", "flight_id": id, "new_status": req.Status})
+				return
+			}
+
+			// ===== 3) Обычное обновление статуса =====
+			cmd, err = pool.Exec(ctxReq, `UPDATE flights SET status=$1 WHERE id=$2`, req.Status, id)
+			if err != nil {
+				log.Printf("❌ update flight status error: %v", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "database error"})
+				return
+			}
+			if cmd.RowsAffected() == 0 {
+				c.JSON(http.StatusNotFound, gin.H{"error": "flight not found"})
+				return
+			}
+
+			c.JSON(http.StatusOK, gin.H{"message": "status updated", "flight_id": id, "new_status": req.Status})
+		})
+
+		// Создание рейса - только admin
+		authRequired.POST("/flights", middleware.RequireRole("admin"), func(c *gin.Context) {
+			var req struct {
+				FlightNumber     string    `json:"flight_number" binding:"required"`
+				AirlineCode      string    `json:"airline_code"`
+				AirlineName      string    `json:"airline_name"`
+				AircraftType     string    `json:"aircraft_type"`
+				DepartureAirport string    `json:"departure_airport" binding:"required"`
+				ArrivalAirport   string    `json:"arrival_airport" binding:"required"`
+				DepartureTime    time.Time `json:"departure_time" binding:"required"`
+				ArrivalTime      time.Time `json:"arrival_time" binding:"required"`
+				Status           string    `json:"status" binding:"required"`
+			}
+
+			if err := c.ShouldBindJSON(&req); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid JSON", "details": err.Error()})
+				return
+			}
+
+			ctxReq := c.Request.Context()
+			_, err := pool.Exec(ctxReq, `
+        INSERT INTO flights 
+        (flight_number, airline_code, airline_name, aircraft_type, departure_airport, arrival_airport, departure_time, arrival_time, status)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+    `,
+				req.FlightNumber,
+				req.AirlineCode,
+				req.AirlineName,
+				req.AircraftType,
+				req.DepartureAirport,
+				req.ArrivalAirport,
+				req.DepartureTime,
+				req.ArrivalTime,
+				req.Status,
+			)
+			if err != nil {
+				log.Printf("❌ insert flight error: %v", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "database insert error"})
+				return
+			}
+
+			c.JSON(http.StatusCreated, gin.H{
+				"message": "Flight created successfully",
+				"flight":  req,
+			})
+		})
+		// Удаление рейса - только admin
+		authRequired.DELETE("/flights/:id", middleware.RequireRole("admin"), func(c *gin.Context) {
+			id := c.Param("id")
+			ctxReq := c.Request.Context()
+
+			cmd, err := pool.Exec(ctxReq, `DELETE FROM flights WHERE id = $1`, id)
+			if err != nil {
+				log.Printf("❌ delete flight error: %v", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "database delete error"})
+				return
+			}
+			if cmd.RowsAffected() == 0 {
+				c.JSON(http.StatusNotFound, gin.H{"error": "flight not found"})
+				return
+			}
+
+			c.JSON(http.StatusOK, gin.H{
+				"message":   "flight deleted",
+				"flight_id": id,
+			})
+		})
+
+		// Dashboard данные - только для залогиненных (любая роль)
+		authRequired.GET("/dashboard/stats", func(c *gin.Context) {
+			userRole, _ := c.Get("userRole")
+			userID, _ := c.Get("userID")
+
+			// Возвращаем данные в зависимости от роли
+			switch userRole {
+			case "admin":
+				c.JSON(http.StatusOK, gin.H{
+					"role":        "admin",
+					"permissions": []string{"all"},
+					"userId":      userID,
+				})
+			case "staff":
+				c.JSON(http.StatusOK, gin.H{
+					"role":        "staff",
+					"permissions": []string{"view_flights", "update_status"},
+					"userId":      userID,
+				})
+			case "viewer":
+				c.JSON(http.StatusOK, gin.H{
+					"role":        "viewer",
+					"permissions": []string{"view_flights"},
+					"userId":      userID,
+					"message":     "Вы можете только просматривать рейсы",
+				})
+			default:
+				c.JSON(http.StatusForbidden, gin.H{
+					"error": "Неизвестная роль",
+				})
+			}
+		})
+	}
 	// Все рейсы
 	r.GET("/api/flights", func(c *gin.Context) {
 		ctxReq := c.Request.Context()
@@ -127,15 +363,16 @@ func main() {
 				log.Printf("❌ scan flight error: %v", err)
 				continue
 			}
-			if f.Status == "scheduled" || f.Status == "in_air" || f.Status == "landed" || f.Status == "delayed" {
+			if f.Status != "delayed" && f.Status != "cancelled" {
 				if now.After(f.ArrivalTime) {
 					f.Status = "landed"
 				} else if now.After(f.DepartureTime) {
 					f.Status = "in_air"
-				} else if f.Status != "delayed" {
+				} else {
 					f.Status = "scheduled"
 				}
 			}
+
 			// длительность в минутах
 			duration := int(f.ArrivalTime.Sub(f.DepartureTime).Minutes())
 			if duration < 0 {
@@ -289,218 +526,7 @@ func main() {
 		})
 	})
 
-	// Обновление статуса рейса (ВАЖНО: ДО r.Run)
-	r.PATCH("/api/flights/:id/status", func(c *gin.Context) {
-		idStr := c.Param("id")
-		id, err := strconv.Atoi(idStr)
-		if err != nil || id <= 0 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid flight id"})
-			return
-		}
-
-		var req struct {
-			Status       string `json:"status"`
-			DelayMinutes int    `json:"delay_minutes"`
-		}
-
-		if err := c.ShouldBindJSON(&req); err != nil || req.Status == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json or empty status"})
-			return
-		}
-
-		switch req.Status {
-		case "scheduled", "boarding", "in_air", "landed", "delayed", "cancelled":
-			// допустимый статус
-		default:
-			c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported status"})
-			return
-		}
-
-		ctxReq := c.Request.Context()
-
-		if req.Status == "delayed" && req.DelayMinutes > 0 {
-			// Сдвигаем время вылета и прилёта на указанное количество минут
-			cmdTag, err := pool.Exec(ctxReq, `
-            UPDATE flights
-        SET 
-            status = $1,
-            original_departure_time = COALESCE(original_departure_time, departure_time),
-            original_arrival_time   = COALESCE(original_arrival_time, arrival_time),
-            departure_time = departure_time + make_interval(mins => $2),
-            arrival_time   = arrival_time   + make_interval(mins => $2)
-        WHERE id = $3
-        `, req.Status, req.DelayMinutes, id)
-			if err != nil {
-				log.Printf("❌ update flight status (delay) error: %v", err)
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "database error"})
-				return
-			}
-			if cmdTag.RowsAffected() == 0 {
-				c.JSON(http.StatusNotFound, gin.H{"error": "flight not found"})
-				return
-			}
-		} else {
-			// Обычное обновление статуса без сдвига времени
-			cmdTag, err := pool.Exec(ctxReq, `
-        UPDATE flights
-        SET 
-            status = $1,
-            departure_time = COALESCE(original_departure_time, departure_time),
-            arrival_time   = COALESCE(original_arrival_time, arrival_time),
-            original_departure_time = NULL,
-            original_arrival_time   = NULL
-        WHERE id = $2
-    `,
-				req.Status, id,
-			)
-			if err != nil {
-				log.Printf("❌ update flight status error: %v", err)
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "database error"})
-				return
-			}
-			if cmdTag.RowsAffected() == 0 {
-				c.JSON(http.StatusNotFound, gin.H{"error": "flight not found"})
-				return
-			}
-		}
-
-		c.JSON(http.StatusOK, gin.H{
-			"id":            id,
-			"status":        req.Status,
-			"delay_minutes": req.DelayMinutes,
-		})
-	})
-	// Создание рейса
-	r.POST("/api/flights", func(c *gin.Context) {
-		var req struct {
-			FlightNumber     string `json:"flight_number"`
-			AirlineCode      string `json:"airline_code"`
-			AirlineName      string `json:"airline_name"`
-			AircraftType     string `json:"aircraft_type"`
-			DepartureAirport string `json:"departure_airport"`
-			ArrivalAirport   string `json:"arrival_airport"`
-			DepartureTime    string `json:"departure_time"`
-			ArrivalTime      string `json:"arrival_time"`
-			Status           string `json:"status"`
-		}
-
-		// 1) Читаем JSON из запроса
-		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-			return
-		}
-
-		// 2) Простая валидация
-		if req.FlightNumber == "" || req.DepartureAirport == "" || req.ArrivalAirport == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "missing required fields"})
-			return
-		}
-		if req.Status == "" {
-			req.Status = "scheduled"
-		}
-
-		// 3) Парсим время в time.Time
-		depTime, err1 := time.Parse(time.RFC3339, req.DepartureTime)
-		arrTime, err2 := time.Parse(time.RFC3339, req.ArrivalTime)
-		if err1 != nil || err2 != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid datetime format (must be RFC3339)"})
-			return
-		}
-
-		// 4) Пишем в базу. ВАЖНО: NULLIF($2, '') чтобы "" -> NULL и не ломал внешний ключ
-		ctxReq := c.Request.Context()
-		var newID int64
-
-		err := pool.QueryRow(ctxReq, `
-				INSERT INTO flights (
-					flight_number, airline_code, airline_name, aircraft_type,
-					departure_airport, arrival_airport,
-					departure_time, arrival_time, status
-				)
-				VALUES (
-					$1,
-					NULLIF($2, ''),  -- "" -> NULL, не конфликтует с FK
-					$3,
-					$4,
-					$5,
-					$6,
-					$7,
-					$8,
-					$9
-				)
-				RETURNING id
-			`,
-			req.FlightNumber,
-			req.AirlineCode,
-			req.AirlineName,
-			req.AircraftType,
-			req.DepartureAirport,
-			req.ArrivalAirport,
-			depTime,
-			arrTime,
-			req.Status,
-		).Scan(&newID)
-
-		if err != nil {
-			log.Printf("❌ Insert flight error: %v", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "database error"})
-			return
-		}
-
-		// 5) Возвращаем ответ
-		c.JSON(http.StatusCreated, gin.H{
-			"id":     newID,
-			"status": "created",
-		})
-	})
-
 	// Простой login (mock)
-	r.POST("/api/auth/login", func(c *gin.Context) {
-		var req struct {
-			Username string `json:"username"`
-			Password string `json:"password"`
-		}
-
-		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-			return
-		}
-
-		if req.Username == "admin" && req.Password == "admin123" {
-			c.JSON(http.StatusOK, gin.H{
-				"token": "mock-jwt-token-for-admin",
-				"user": gin.H{
-					"id":       1,
-					"username": "admin",
-					"role":     "admin",
-				},
-			})
-		} else if req.Username == "staff" && req.Password == "staff123" {
-			c.JSON(http.StatusOK, gin.H{
-				"token": "mock-jwt-token-for-staff",
-				"user": gin.H{
-					"id":       2,
-					"username": "staff",
-					"role":     "staff",
-				},
-			})
-		} else {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
-		}
-	})
-
-	// ===== ЗАПУСК СЕРВЕРА =====
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-
-	log.Printf("🚀 Server starting on :%s", port)
-	if err := r.Run(":" + port); err != nil {
-		log.Fatalf("❌ Failed to start server: %v", err)
-	}
-
-	// Добавить в main.go или создать отдельный handler
 	r.GET("/api/airlines/detailed", func(c *gin.Context) {
 		ctxReq := c.Request.Context()
 
@@ -558,6 +584,18 @@ func main() {
 
 		c.JSON(http.StatusOK, airlines)
 	})
+	// ===== ЗАПУСК СЕРВЕРА =====
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Printf("🚀 Server starting on :%s", port)
+	if err := r.Run(":" + port); err != nil {
+		log.Fatalf("❌ Failed to start server: %v", err)
+	}
+
+	// Добавить в main.go или создать отдельный handler
 
 }
 func createTables(ctx context.Context, pool *pgxpool.Pool) {
@@ -582,8 +620,38 @@ func createTables(ctx context.Context, pool *pgxpool.Pool) {
 		log.Printf("❌ createFlightsTable error: %v", err)
 		return
 	}
+
+	// 1.1) На существующей flights добавим колонки для delay/undelay (если их ещё нет)
+	_, err = pool.Exec(ctx, `
+		ALTER TABLE flights
+			ADD COLUMN IF NOT EXISTS original_departure_time TIMESTAMPTZ,
+			ADD COLUMN IF NOT EXISTS original_arrival_time   TIMESTAMPTZ
+	`)
+	if err != nil {
+		log.Printf("❌ alterFlightsTable error: %v", err)
+		return
+	}
 	log.Printf("✅ Table 'flights' is ready")
 
+	// 2) Таблица users
+	_, err = pool.Exec(ctx, `
+		CREATE TABLE IF NOT EXISTS users (
+			id BIGSERIAL PRIMARY KEY,
+			username TEXT NOT NULL UNIQUE,
+			password_hash TEXT NOT NULL,
+			email TEXT,
+			full_name TEXT,
+			role TEXT NOT NULL DEFAULT 'viewer' CHECK (role IN ('viewer','staff','admin')),
+			is_active BOOLEAN NOT NULL DEFAULT true,
+			created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+			last_login TIMESTAMPTZ
+		)
+	`)
+	if err != nil {
+		log.Printf("❌ createUsersTable error: %v", err)
+		return
+	}
+	log.Printf("✅ Table 'users' is ready")
 	// 2. Если в таблице нет данных — добавляем тестовые рейсы
 	var count int
 	if err := pool.QueryRow(ctx, `SELECT COUNT(*) FROM flights`).Scan(&count); err != nil {

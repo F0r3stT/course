@@ -1,3 +1,4 @@
+// internal/auth/jwt.go
 package auth
 
 import (
@@ -14,8 +15,9 @@ var (
 )
 
 type Claims struct {
-	UserID int64  `json:"user_id"`
-	Role   string `json:"role"`
+	UserID   int64  `json:"user_id"`
+	Role     string `json:"role"`
+	Username string `json:"username"`
 	jwt.RegisteredClaims
 }
 
@@ -27,7 +29,7 @@ func getSecret() ([]byte, error) {
 	return []byte(secret), nil
 }
 
-func GenerateToken(userID int64, role string) (string, error) {
+func GenerateToken(userID int64, role, username string) (string, error) {
 	secret, err := getSecret()
 	if err != nil {
 		return "", err
@@ -35,11 +37,13 @@ func GenerateToken(userID int64, role string) (string, error) {
 
 	now := time.Now()
 	claims := &Claims{
-		UserID: userID,
-		Role:   role,
+		UserID:   userID,
+		Role:     role,
+		Username: username,
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(tokenExpiration)),
+			Issuer:    "flightboard",
 		},
 	}
 
