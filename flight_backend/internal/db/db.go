@@ -15,7 +15,6 @@ func Connect(ctx context.Context, connStr string) (*pgxpool.Pool, error) {
 		return nil, fmt.Errorf("parse config: %w", err)
 	}
 
-	// Настройки пула соединений
 	config.MaxConns = 25
 	config.MinConns = 5
 	config.MaxConnLifetime = time.Hour
@@ -23,13 +22,11 @@ func Connect(ctx context.Context, connStr string) (*pgxpool.Pool, error) {
 	config.HealthCheckPeriod = time.Minute
 	config.ConnConfig.ConnectTimeout = time.Second * 5
 
-	// Подключение к базе данных
 	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
 		return nil, fmt.Errorf("create pool: %w", err)
 	}
 
-	// Проверка соединения
 	err = pool.Ping(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("ping database: %w", err)

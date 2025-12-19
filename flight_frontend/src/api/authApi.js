@@ -18,12 +18,11 @@ export async function login(username, password) {
         message = data.error;
       }
     } catch {
-      // игнорируем парсинг, оставляем дефолтный текст
     }
     throw new Error(message);
   }
 
-  const data = await res.json(); // { token, user }
+  const data = await res.json(); 
   return data;
 }
 

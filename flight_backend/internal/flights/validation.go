@@ -7,7 +7,6 @@ import (
 	"time"
 )
 
-// допустимые статусы рейса
 var allowedStatuses = map[string]struct{}{
 	"scheduled": {},
 	"boarding":  {},
@@ -20,7 +19,6 @@ var allowedStatuses = map[string]struct{}{
 var flightNumDigits = regexp.MustCompile(`^[0-9]{3,6}$`)
 var airlineCodeRe = regexp.MustCompile(`^[A-Z0-9]{2}$`)
 
-// validateFlightRequest — общая валидация для создания/обновления рейса.
 func validateFlightRequest(
 	flightNumber, airlineCode, depAirport, arrAirport,
 	status, depTimeStr, arrTimeStr string,
@@ -31,7 +29,6 @@ func validateFlightRequest(
 	arrAirport = strings.ToUpper(strings.TrimSpace(arrAirport))
 	status = strings.TrimSpace(status)
 
-	// номер рейса: только 3–6 цифр
 	if !flightNumDigits.MatchString(flightNumber) {
 		return time.Time{}, time.Time{}, errors.New("номер рейса должен содержать только 3–6 цифр")
 	}

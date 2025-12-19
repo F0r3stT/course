@@ -2,9 +2,6 @@ package flights
 
 import "time"
 
-//допустимые статусы рейса — синхронизированы с CHECK в БД
-
-// internal/flights/types.go
 type Flight struct {
 	ID                    int64     `json:"id"`
 	FlightNumber          string    `json:"flight_number"`
@@ -19,7 +16,6 @@ type Flight struct {
 	FlightDurationMinutes int       `json:"flight_duration_minutes"`
 }
 
-// CreateFlightRequest — DTO для создания рейса (читаем JSON)
 type CreateFlightRequest struct {
 	FlightNumber     string `json:"flight_number"`
 	AirlineCode      string `json:"airline_code"`
@@ -32,7 +28,6 @@ type CreateFlightRequest struct {
 	Status           string `json:"status"`
 }
 
-// UpdateFlightRequest — DTO для полного обновления рейса
 type UpdateFlightRequest struct {
 	FlightNumber     string `json:"flight_number"`
 	AirlineCode      string `json:"airline_code"`
@@ -45,7 +40,6 @@ type UpdateFlightRequest struct {
 	Status           string `json:"status"`
 }
 
-// UpdateStatusRequest — частичное обновление только статуса.
 type UpdateStatusRequest struct {
 	Status string `json:"status"`
 }

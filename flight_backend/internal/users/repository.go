@@ -103,7 +103,7 @@ func (r *PostgresRepository) Create(ctx context.Context, user *User) error {
 		RETURNING id, created_at
 	`
 
-	// По умолчанию все новые пользователи - viewer
+	// По умолчанию все новые пользователи посетители
 	if user.Role == "" {
 		user.Role = RoleViewer
 	}

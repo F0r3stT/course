@@ -18,16 +18,14 @@ type Config struct {
 	AllowedOrigin string
 }
 
-// Load читает переменные окружения и формирует Config.
-// Если каких-то критичных переменных нет — завершает программу.
 func Load() *Config {
 	cfg := &Config{
 		Env:           getEnv("APP_ENV", "dev"),
 		DBURL:         mustEnv("DATABASE_URL"),
 		JWTSecret:     []byte(mustEnv("JWT_SECRET")),
-		JWTTTL:        getDuration("JWT_TTL", time.Hour), // по умолчанию 1h
-		LoginRateRPS:  getFloat("LOGIN_RATE_RPS", 3.0),   // по умолчанию 3 req/s
-		LoginBurst:    getInt("LOGIN_BURST", 10),         // по умолчанию 10
+		JWTTTL:        getDuration("JWT_TTL", time.Hour),
+		LoginRateRPS:  getFloat("LOGIN_RATE_RPS", 3.0),
+		LoginBurst:    getInt("LOGIN_BURST", 10),
 		AllowedOrigin: getEnv("CORS_ORIGIN", "http://localhost:5173"),
 	}
 	return cfg

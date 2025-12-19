@@ -24,7 +24,6 @@ func NewHandler(usersRepo users.Repository) *Handler {
 	return &Handler{Users: usersRepo}
 }
 
-// RegisterRoutes регистрирует маршруты авторизации
 func (h *Handler) RegisterRoutes(r *gin.Engine) {
 	authGroup := r.Group("/api/auth")
 	{
@@ -59,7 +58,6 @@ func (h *Handler) Login(c *gin.Context) {
 	ip := c.ClientIP()
 	log.Printf("audit: login_attempt username=%s ip=%s", req.Username, ip)
 
-	// Получаем пользователя
 	ctx := c.Request.Context()
 	user, err := h.Users.GetByUsername(ctx, req.Username)
 	if err != nil {
@@ -71,8 +69,6 @@ func (h *Handler) Login(c *gin.Context) {
 		})
 		return
 	}
-
-	// Проверяем пароль
 	if err := CheckPassword(user.PasswordHash, req.Password); err != nil {
 		log.Printf("audit: login_failed username=%s ip=%s reason=bad_password", req.Username, ip)
 		time.Sleep(2 * time.Second)

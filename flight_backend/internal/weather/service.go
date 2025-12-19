@@ -33,7 +33,6 @@ var Airports = map[string]Airport{
 
 var httpClient = &http.Client{Timeout: requestTimeout}
 
-// Кеш + защита от stampede
 var (
 	mu         sync.Mutex
 	cond       = sync.NewCond(&mu)
@@ -43,7 +42,7 @@ var (
 )
 
 type owmResponse struct {
-	Timezone int `json:"timezone"` // seconds from UTC
+	Timezone int `json:"timezone"`
 
 	Main struct {
 		Temp      float64 `json:"temp"`
@@ -111,7 +110,7 @@ func buildURL(a Airport, apiKey string) (string, error) {
 	q.Set("lon", fmt.Sprintf("%f", a.Lon))
 	q.Set("appid", apiKey)
 	q.Set("lang", "ru")
-	q.Set("units", "metric") // сразу °C
+	q.Set("units", "metric")
 	u.RawQuery = q.Encode()
 	return u.String(), nil
 }

@@ -27,7 +27,6 @@ function AppContent() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    // ВАЖНО: сначала уходим на главную, потом чистим auth
     navigate("/", { replace: true });
     setTimeout(() => logout(), 0);
   };

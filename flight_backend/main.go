@@ -20,7 +20,6 @@ import (
 func main() {
 	_ = godotenv.Load()
 
-	// Простая конфигурация
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
 		dbURL = "postgres://flights_user:password@localhost:5432/flights"
@@ -33,23 +32,17 @@ func main() {
 	}
 	defer pool.Close()
 
-	// Проверка соединения
 	if err := pool.Ping(ctx); err != nil {
 		log.Fatalf("❌ Database ping failed: %v", err)
 	}
 	log.Println("✅ Database connected successfully")
 
-	// Создаем таблицы если их нет
 	createTables(ctx, pool)
 
-	// Настройка Gin
 	r := gin.Default()
-
-	// Добавляем middleware безопасности
 	r.Use(middleware.SecurityHeaders())
-	r.Use(middleware.RequestThrottle(100, time.Minute)) // 100 запросов в минуту
+	r.Use(middleware.RequestThrottle(100, time.Minute))
 
-	// Настройка CORS
 	r.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"http://localhost:5173", "http://localhost:3000", "https://flightsboard.ru",
 			"https://www.flightsboard.ru"},
@@ -60,11 +53,9 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 	weather.RegisterRoutes(r)
-	// ===== ПУБЛИЧНЫЕ МАРШРУТЫ =====
 	usersRepo := users.NewPostgresRepository(pool)
 	authHandler := auth.NewHandler(usersRepo)
 	authHandler.RegisterRoutes(r)
-	// Health-check
 	r.GET("/api/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "pong",
@@ -76,8 +67,6 @@ func main() {
 	authRequired.Use(middleware.AuthRequired())
 
 	{
-		// Обновление статуса рейса - только staff и admin
-		// Обновление статуса рейса - только staff и admin
 		authRequired.PATCH("/flights/:id/status", middleware.RequireRole("staff", "admin"), func(c *gin.Context) {
 			id := c.Param("id")
 
@@ -93,14 +82,12 @@ func main() {
 
 			ctxReq := c.Request.Context()
 
-			// ===== 1) СТАВИМ ЗАДЕРЖКУ =====
 			if req.Status == "delayed" {
 				if req.DelayMinutes <= 0 {
 					c.JSON(http.StatusBadRequest, gin.H{"error": "delay_minutes must be > 0 for delayed status"})
 					return
 				}
 
-				// 1.1) Сначала читаем текущий статус (до UPDATE!)
 				var currentStatus string
 				err := pool.QueryRow(ctxReq, `SELECT status FROM flights WHERE id = $1`, id).Scan(&currentStatus)
 				if err != nil {
@@ -108,9 +95,6 @@ func main() {
 					return
 				}
 
-				// 1.2) Запрещаем задержку, если уже в воздухе/прилетел/отменён
-				// Разрешаем: scheduled, boarding, delayed (чтобы можно было "добавить" задержку до вылета)
-				// Разрешаем задержку ТОЛЬКО до вылета
 				if currentStatus != "scheduled" && currentStatus != "boarding" {
 					c.JSON(http.StatusBadRequest, gin.H{
 						"error":          "нельзя поставить задержку: рейс уже в воздухе/приземлился/отменён или имеет неподходящий статус",
@@ -119,7 +103,6 @@ func main() {
 					return
 				}
 
-				// 1.3) Сдвигаем времена + ставим delayed
 				cmd, err := pool.Exec(ctxReq, `
             UPDATE flights
             SET
@@ -140,8 +123,6 @@ func main() {
 					return
 				}
 
-				// 1.4) Таймер снятия "delayed": после задержки статус становится обычным,
-				// а времена остаются СДВИНУТЫМИ (рейс дальше идет "в своём темпе").
 				delayDuration := time.Duration(req.DelayMinutes) * time.Minute
 				go func(flightID string, delay time.Duration) {
 					time.Sleep(delay)
@@ -168,7 +149,6 @@ func main() {
 				return
 			}
 
-			// ===== 2) ЕСЛИ РЕЙС БЫЛ delayed И МЫ ПЕРЕВОДИМ В ДРУГОЙ СТАТУС — ВОССТАНАВЛИВАЕМ original_* =====
 			cmd, err := pool.Exec(ctxReq, `
         UPDATE flights
         SET
@@ -189,7 +169,6 @@ func main() {
 				return
 			}
 
-			// ===== 3) Обычное обновление статуса =====
 			cmd, err = pool.Exec(ctxReq, `UPDATE flights SET status=$1 WHERE id=$2`, req.Status, id)
 			if err != nil {
 				log.Printf("❌ update flight status error: %v", err)
@@ -204,7 +183,6 @@ func main() {
 			c.JSON(http.StatusOK, gin.H{"message": "status updated", "flight_id": id, "new_status": req.Status})
 		})
 
-		// Создание рейса - только admin
 		authRequired.POST("/flights", middleware.RequireRole("admin"), func(c *gin.Context) {
 			var req struct {
 				FlightNumber     string    `json:"flight_number" binding:"required"`
@@ -250,7 +228,6 @@ func main() {
 				"flight":  req,
 			})
 		})
-		// Удаление рейса - только admin
 		authRequired.DELETE("/flights/:id", middleware.RequireRole("admin"), func(c *gin.Context) {
 			id := c.Param("id")
 			ctxReq := c.Request.Context()
@@ -272,12 +249,10 @@ func main() {
 			})
 		})
 
-		// Dashboard данные - только для залогиненных (любая роль)
 		authRequired.GET("/dashboard/stats", func(c *gin.Context) {
 			userRole, _ := c.Get("userRole")
 			userID, _ := c.Get("userID")
 
-			// Возвращаем данные в зависимости от роли
 			switch userRole {
 			case "admin":
 				c.JSON(http.StatusOK, gin.H{
@@ -305,7 +280,6 @@ func main() {
 			}
 		})
 	}
-	// Все рейсы
 	r.GET("/api/flights", func(c *gin.Context) {
 		ctxReq := c.Request.Context()
 
@@ -373,7 +347,6 @@ func main() {
 				}
 			}
 
-			// длительность в минутах
 			duration := int(f.ArrivalTime.Sub(f.DepartureTime).Minutes())
 			if duration < 0 {
 				duration = 0
@@ -387,7 +360,6 @@ func main() {
 	r.GET("/api/flights/popular", func(c *gin.Context) {
 		ctxReq := c.Request.Context()
 
-		// top 4 популярных направлений по количеству рейсов
 		rows, err := pool.Query(ctxReq, `
     WITH routes AS (
       SELECT
@@ -468,7 +440,6 @@ r.flights_count
 		c.JSON(200, out)
 	})
 
-	// Список авиакомпаний
 	r.GET("/api/airlines", func(c *gin.Context) {
 		ctxReq := c.Request.Context()
 
@@ -497,7 +468,6 @@ r.flights_count
 			})
 		}
 
-		// Если нет данных, возвращаем тестовые
 		if len(airlines) == 0 {
 			airlines = []map[string]string{
 				{"code": "SU", "name": "Аэрофлот"},
@@ -511,7 +481,6 @@ r.flights_count
 		c.JSON(http.StatusOK, airlines)
 	})
 
-	// Рейсы конкретной авиакомпании
 	r.GET("/api/airlines/:code/flights", func(c *gin.Context) {
 		code := c.Param("code")
 		ctxReq := c.Request.Context()
@@ -609,7 +578,6 @@ r.flights_count
 		})
 	})
 
-	// Простой login (mock)
 	r.GET("/api/airlines/detailed", func(c *gin.Context) {
 		ctxReq := c.Request.Context()
 
@@ -667,7 +635,6 @@ r.flights_count
 
 		c.JSON(http.StatusOK, airlines)
 	})
-	// ===== ЗАПУСК СЕРВЕРА =====
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
@@ -678,11 +645,8 @@ r.flights_count
 		log.Fatalf("❌ Failed to start server: %v", err)
 	}
 
-	// Добавить в main.go или создать отдельный handler
-
 }
 func createTables(ctx context.Context, pool *pgxpool.Pool) {
-	// 1. Создаём таблицу flights при необходимости
 	_, err := pool.Exec(ctx, `
 		CREATE TABLE IF NOT EXISTS flights (
 			id BIGSERIAL PRIMARY KEY,
@@ -704,7 +668,6 @@ func createTables(ctx context.Context, pool *pgxpool.Pool) {
 		return
 	}
 
-	// 1.1) На существующей flights добавим колонки для delay/undelay (если их ещё нет)
 	_, err = pool.Exec(ctx, `
 		ALTER TABLE flights
 			ADD COLUMN IF NOT EXISTS original_departure_time TIMESTAMPTZ,
@@ -716,7 +679,6 @@ func createTables(ctx context.Context, pool *pgxpool.Pool) {
 	}
 	log.Printf("✅ Table 'flights' is ready")
 
-	// 2) Таблица users
 	_, err = pool.Exec(ctx, `
 		CREATE TABLE IF NOT EXISTS users (
 			id BIGSERIAL PRIMARY KEY,

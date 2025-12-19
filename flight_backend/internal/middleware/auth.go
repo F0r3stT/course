@@ -34,7 +34,6 @@ func AuthRequired() gin.HandlerFunc {
 			}
 		}
 
-		// Публичные auth-роуты (login/register)
 		if strings.HasPrefix(path, "/api/auth/") {
 			c.Next()
 			return

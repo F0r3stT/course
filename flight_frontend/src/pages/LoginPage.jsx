@@ -71,7 +71,7 @@ export default function LoginPage() {
                 autoComplete="username"
               />
               <label htmlFor="username">Логин</label>
-              <div className="input-icon">👤</div>
+              <div className="input-icon"></div>
             </div>
 
             <div className="form-group animated-input">
@@ -85,12 +85,12 @@ export default function LoginPage() {
                 autoComplete="current-password"
               />
               <label htmlFor="password">Пароль</label>
-              <div className="input-icon">🔒</div>
+              <div className="input-icon"></div>
             </div>
 
             {error && (
               <div className="error-message">
-                <span className="error-icon">⚠️</span>
+                <span className="error-icon"></span>
                 {error}
               </div>
             )}

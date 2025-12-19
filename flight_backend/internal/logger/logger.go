@@ -7,7 +7,6 @@ import (
 
 var Log *slog.Logger
 
-// Init инициализирует глобальный логгер в зависимости от окружения.
 func Init(env string) {
 	var handler slog.Handler
 	if env == "prod" {

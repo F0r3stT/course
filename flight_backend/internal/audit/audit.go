@@ -9,7 +9,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// AuditLog - структура для аудита действий
 type AuditLog struct {
 	ID         int64           `json:"id"`
 	Action     string          `json:"action"`
@@ -24,7 +23,6 @@ type AuditLog struct {
 	CreatedAt  time.Time       `json:"created_at"`
 }
 
-// AuditLogger - логгер аудита
 type AuditLogger struct {
 	db *pgxpool.Pool
 }
@@ -33,7 +31,6 @@ func NewAuditLogger(db *pgxpool.Pool) *AuditLogger {
 	return &AuditLogger{db: db}
 }
 
-// Log - запись события аудита
 func (l *AuditLogger) Log(ctx context.Context, event AuditLog) error {
 	query := `
 		INSERT INTO audit_logs (
@@ -57,7 +54,6 @@ func (l *AuditLogger) Log(ctx context.Context, event AuditLog) error {
 	return err
 }
 
-// LogFlightEvent - аудит действий с рейсами
 func (l *AuditLogger) LogFlightEvent(ctx context.Context, action string, flightID int64, userID int64, username, role, ip string, details interface{}) error {
 	detailsJSON, _ := json.Marshal(details)
 
@@ -75,7 +71,6 @@ func (l *AuditLogger) LogFlightEvent(ctx context.Context, action string, flightI
 	return l.Log(ctx, event)
 }
 
-// LogAuthEvent - аудит действий аутентификации
 func (l *AuditLogger) LogAuthEvent(ctx context.Context, action string, username, role, ip, userAgent string, success bool) error {
 	details := map[string]interface{}{
 		"success": success,
@@ -96,7 +91,6 @@ func (l *AuditLogger) LogAuthEvent(ctx context.Context, action string, username,
 	return l.Log(ctx, event)
 }
 
-// GetUserActivity - получение активности пользователя
 func (l *AuditLogger) GetUserActivity(ctx context.Context, userID int64, limit int) ([]AuditLog, error) {
 	query := `
 		SELECT id, action, user_id, username, user_role, ip_address, 

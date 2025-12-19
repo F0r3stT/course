@@ -25,12 +25,12 @@ const MIN_FLIGHT_TIMES = {
 };
 
 const STATUS_OPTIONS = [
-  { value: "scheduled", label: "По расписанию", icon: "📅" },
-  { value: "boarding", label: "Посадка", icon: "👥" },
-  { value: "delayed", label: "Задержан", icon: "⏱️" },
-  { value: "cancelled", label: "Отменён", icon: "❌" },
-  { value: "in_air", label: "В полёте", icon: "✈️" },
-  { value: "landed", label: "Прибыл", icon: "🛬" },
+  { value: "scheduled", label: "По расписанию", icon: "" },
+  { value: "boarding", label: "Посадка", icon: "" },
+  { value: "delayed", label: "Задержан", icon: "⏱" },
+  { value: "cancelled", label: "Отменён", icon: "" },
+  { value: "in_air", label: "В полёте", icon: "" },
+  { value: "landed", label: "Прибыл", icon: "" },
 ];
 
 const AIRLINE_OPTIONS = [
@@ -304,7 +304,7 @@ export default function CreateFlightTab({ onFlightCreated }) {
 
       {errors.submit && (
         <div className="alert alert-error">
-          <span className="alert-icon">⚠️</span>
+          <span className="alert-icon"></span>
           {errors.submit}
         </div>
       )}
@@ -320,7 +320,7 @@ export default function CreateFlightTab({ onFlightCreated }) {
         {/* Блок: Основная информация */}
         <div className="form-section">
           <h3 className="section-title">
-            <span className="section-icon">📋</span>
+            <span className="section-icon"></span>
             Основная информация
           </h3>
           
@@ -405,7 +405,7 @@ export default function CreateFlightTab({ onFlightCreated }) {
         {/* Блок: Маршрут */}
         <div className="form-section">
           <h3 className="section-title">
-            <span className="section-icon">🗺️</span>
+            <span className="section-icon"></span>
             Маршрут
           </h3>
           
@@ -469,7 +469,7 @@ export default function CreateFlightTab({ onFlightCreated }) {
         {/* Блок: Время */}
         <div className="form-section">
           <h3 className="section-title">
-            <span className="section-icon">⏰</span>
+            <span className="section-icon"></span>
             Время полёта
           </h3>
           
@@ -589,7 +589,7 @@ export default function CreateFlightTab({ onFlightCreated }) {
         </div>
         <div className="form-footer">
           <p className="form-note">
-            <span className="note-icon">💡</span>
+            <span className="note-icon"></span>
             Все поля, отмеченные *, обязательны для заполнения.
             Коды аэропортов должны существовать в системе.
           </p>

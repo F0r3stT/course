@@ -168,7 +168,7 @@ export default function WeatherWidget({ fullBleed = true, title = "Погода 
                     <div className="weather-temp-block" data-cold={Number(airport.temperature) < 0 ? "1" : "0"}>
                       <span className="weather-temp-min">{formatTemp(airport.temperature)}</span>
                       <span className="weather-icon-min" aria-hidden="true">
-                        {airport.icon || "🌤️"}
+                        {airport.icon || ""}
                       </span>
                     </div>
                   </div>
@@ -178,7 +178,7 @@ export default function WeatherWidget({ fullBleed = true, title = "Погода 
                     <div className="weather-kpis">
                       {wind ? <span className="weather-kpi">💨 {wind}</span> : null}
                       {hum ? <span className="weather-kpi">💧 {hum}</span> : null}
-                      {airport.code ? <span className="weather-kpi">🕒 {getLocalTime(airport.code)}</span> : null}
+                      {airport.code ? <span className="weather-kpi"> {getLocalTime(airport.code)}</span> : null}
                     </div>
                   </div>
                 </div>

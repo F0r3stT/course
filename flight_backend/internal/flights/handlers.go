@@ -24,7 +24,6 @@ type Airline struct {
 	FleetSize int    `json:"fleet_size"`
 }
 
-// GET /api/airlines - список всех авиакомпаний
 func (h *Handler) GetAirlines(c *gin.Context) {
 	ctx := c.Request.Context()
 
@@ -57,7 +56,6 @@ func (h *Handler) GetAirlines(c *gin.Context) {
 	c.JSON(http.StatusOK, airlines)
 }
 
-// GET /api/airlines/:code/flights - рейсы конкретной авиакомпании
 func (h *Handler) GetAirlineFlights(c *gin.Context) {
 	airlineCode := c.Param("code")
 	ctx := c.Request.Context()

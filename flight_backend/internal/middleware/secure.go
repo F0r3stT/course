@@ -11,7 +11,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// SecurityHeaders добавляет заголовки безопасности
 func SecurityHeaders() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("X-Content-Type-Options", "nosniff")
@@ -30,7 +29,6 @@ var (
 	requestMu       sync.Mutex
 )
 
-// GenerateNonce генерирует уникальный nonce для CSP
 func GenerateNonce() (string, error) {
 	nonce := make([]byte, 16)
 	if _, err := rand.Read(nonce); err != nil {
@@ -39,14 +37,13 @@ func GenerateNonce() (string, error) {
 	return base64.StdEncoding.EncodeToString(nonce), nil
 }
 
-// RequestThrottle ограничивает количество запросов
 func RequestThrottle(maxRequests int, window time.Duration) gin.HandlerFunc {
 	type requestInfo struct {
 		count     int
 		resetTime time.Time
 	}
 
-	// общая карта и мьютекс для ВСЕХ запросов
+	//общая карта и мьютекс для всех запросов
 	var (
 		mu       sync.Mutex
 		requests = make(map[string]*requestInfo)
@@ -58,8 +55,6 @@ func RequestThrottle(maxRequests int, window time.Duration) gin.HandlerFunc {
 
 		mu.Lock()
 		info, exists := requests[ip]
-
-		// если записи нет либо окно истекло — начинаем новое окно
 		if !exists || now.After(info.resetTime) {
 			info = &requestInfo{
 				count:     1,

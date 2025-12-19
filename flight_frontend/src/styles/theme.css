@@ -1,6 +1,4 @@
-/* Современная тема авиакомпании */
 :root {
-  /* Основные цвета авиакомпании */
   --primary: #0066cc;
   --primary-dark: #0052a3;
   --primary-light: #3385d6;
@@ -11,23 +9,19 @@
   --danger: #dc3545;
   --info: #17a2b8;
   
-  /* Градиенты для неба */
   --sky-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
   --cloud-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
   --sunset-gradient: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
   --night-gradient: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
   
-  /* Текстуры и тени */
   --card-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   --hover-shadow: 0 25px 75px rgba(0, 102, 204, 0.15);
   --glow: 0 0 20px rgba(0, 166, 255, 0.5);
   
-  /* Анимации */
   --transition-fast: 0.2s ease;
   --transition-normal: 0.3s ease;
   --transition-slow: 0.5s ease;
   
-  /* Радиусы */
   --radius-sm: 8px;
   --radius-md: 16px;
   --radius-lg: 24px;
@@ -35,7 +29,6 @@
   --radius-full: 999px;
 }
 
-/* Тема для дня/ночи */
 [data-theme="day"] {
   --bg-primary: #f8f9fa;
   --bg-secondary: #ffffff;

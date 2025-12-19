@@ -270,13 +270,13 @@ return sorted.slice(0, limit);
               </div>
 
               <div className="stat-card">
-                <div className="stat-icon">🏢</div>
+                <div className="stat-icon"></div>
                 <div className="stat-value">{stats.airports}</div>
                 <div className="stat-label">Аэропортов</div>
               </div>
 
               <div className="stat-card">
-                <div className="stat-icon">👥</div>
+                <div className="stat-icon"></div>
                 <div className="stat-value">{stats.airlines}</div>
                 <div className="stat-label">Авиакомпаний</div>
               </div>
