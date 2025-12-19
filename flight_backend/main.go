@@ -384,6 +384,89 @@ func main() {
 
 		c.JSON(http.StatusOK, flights)
 	})
+	r.GET("/api/flights/popular", func(c *gin.Context) {
+		ctxReq := c.Request.Context()
+
+		// top 4 популярных направлений по количеству рейсов
+		rows, err := pool.Query(ctxReq, `
+    WITH routes AS (
+      SELECT
+        departure_airport,
+        arrival_airport,
+        COUNT(*) AS flights_count,
+        MAX(departure_time) AS last_departure_time
+      FROM flights
+      WHERE
+        departure_airport IS NOT NULL AND departure_airport <> ''
+        AND arrival_airport   IS NOT NULL AND arrival_airport   <> ''
+        AND departure_airport <> arrival_airport
+        AND departure_time IS NOT NULL AND arrival_time IS NOT NULL
+      GROUP BY departure_airport, arrival_airport
+    )
+    SELECT
+      f.id, f.flight_number,
+      COALESCE(f.airline_code,''), COALESCE(f.airline_name,''),
+      COALESCE(f.aircraft_type,''),
+      f.departure_airport, f.arrival_airport,
+      f.departure_time, f.arrival_time,
+(
+  CASE
+    WHEN f.arrival_time >= f.departure_time
+      THEN EXTRACT(EPOCH FROM (f.arrival_time - f.departure_time))
+    ELSE
+      EXTRACT(EPOCH FROM ((f.arrival_time + interval '1 day') - f.departure_time))
+  END / 60
+)::int AS flight_duration_minutes,
+f.status,
+r.flights_count
+
+    FROM routes r
+    JOIN flights f
+      ON f.departure_airport = r.departure_airport
+     AND f.arrival_airport   = r.arrival_airport
+     AND f.departure_time    = r.last_departure_time
+    ORDER BY r.flights_count DESC
+    LIMIT 4;
+  `)
+		if err != nil {
+			c.JSON(500, gin.H{"error": "database error"})
+			return
+		}
+		defer rows.Close()
+
+		type PopularFlight struct {
+			ID                    int       `json:"id"`
+			FlightNumber          string    `json:"flight_number"`
+			AirlineCode           string    `json:"airline_code"`
+			AirlineName           string    `json:"airline_name"`
+			AircraftType          string    `json:"aircraft_type"`
+			DepartureAirport      string    `json:"departure_airport"`
+			ArrivalAirport        string    `json:"arrival_airport"`
+			DepartureTime         time.Time `json:"departure_time"`
+			ArrivalTime           time.Time `json:"arrival_time"`
+			FlightDurationMinutes int       `json:"flight_duration_minutes"`
+			Status                string    `json:"status"`
+			FlightsCount          int       `json:"flights_count"`
+		}
+
+		var out []PopularFlight
+		for rows.Next() {
+			var f PopularFlight
+			if err := rows.Scan(
+				&f.ID, &f.FlightNumber,
+				&f.AirlineCode, &f.AirlineName,
+				&f.AircraftType,
+				&f.DepartureAirport, &f.ArrivalAirport,
+				&f.DepartureTime, &f.ArrivalTime,
+				&f.FlightDurationMinutes,
+				&f.Status,
+				&f.FlightsCount,
+			); err == nil {
+				out = append(out, f)
+			}
+		}
+		c.JSON(200, out)
+	})
 
 	// Список авиакомпаний
 	r.GET("/api/airlines", func(c *gin.Context) {

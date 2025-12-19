@@ -88,18 +88,6 @@ export default function LoginPage() {
               <div className="input-icon">🔒</div>
             </div>
 
-            <div className="form-options">
-              <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                />
-                <span className="checkmark"></span>
-                Запомнить меня
-              </label>
-            </div>
-
             {error && (
               <div className="error-message">
                 <span className="error-icon">⚠️</span>
@@ -131,13 +119,6 @@ export default function LoginPage() {
                 Назад
               </button>
           </form>
-
-          <div className="login-footer">
-            <p className="security-note">
-              <span className="security-icon">🛡️</span>
-              Система защищена по стандарту ISO 27001
-            </p>
-          </div>
         </div>
       </div>
     </div>

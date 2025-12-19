@@ -43,7 +43,6 @@ function AppContent() {
 
           <nav className="nav">
             {user && <Link to="/dashboard">Панель</Link>}
-            {user?.role === "admin" && <Link to="/analytics">Аналитика</Link>}
           </nav>
 
           <div>

@@ -48,6 +48,8 @@ export default function HomePage() {
   const [showBoard, setShowBoard] = useState(false);
   const [boardAnimation, setBoardAnimation] = useState("");
 
+  const [popularFlights, setPopularFlights] = useState([]);
+
   const fetchStats = async () => {
     try {
       const res = await fetch("/api/stats");
@@ -98,38 +100,23 @@ export default function HomePage() {
   {showBoard ? "Скрыть табло" : "Посмотреть табло"}
 </button>
 
-  const popularFlights = React.useMemo(() => {
-    if (!featuredFlights || featuredFlights.length === 0) return [];
+  const fetchPopularFlights = async () => {
+  try {
+    setLoading(true);
+    const res = await fetch("/api/flights/popular");
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Ошибка /api/flights/popular: ${res.status} ${text}`);
+    }
+    const data = await res.json();
+    setPopularFlights(Array.isArray(data) ? data : data.flights || []);
+  } catch (e) {
+    console.error("[HomePage] Error fetching popular flights:", e);
+  } finally {
+    setLoading(false);
+  }
+};
 
-    const map = new Map();
-
-    const sorted = Array.from(map.values()).sort(
-  (a, b) => b.flightsCount - a.flightsCount
-);
-    featuredFlights.forEach((f) => {
-      const key = `${f.departure_airport}-${f.arrival_airport}`;
-      const existing = map.get(key);
-
-      if (!existing) {
-        map.set(key, {
-          ...f,
-          flightsCount: 1,
-        });
-      } else {
-        const flightsCount = existing.flightsCount + 1;
-        // берём самый поздний рейс по времени вылета как代表
-        const existingDep = new Date(existing.departure_time);
-        const currentDep = new Date(f.departure_time);
-        map.set(key, {
-          ...(currentDep > existingDep ? f : existing),
-          flightsCount,
-        });
-      }
-    });
-    return Array.from(map.values())
-      .sort((a, b) => b.flightsCount - a.flightsCount)
-      .slice(0, 4);
-  }, [featuredFlights]);
 
   const fetchFeaturedFlights = async () => {
   try {
@@ -184,13 +171,15 @@ return sorted.slice(0, limit);
 
   useEffect(() => {
     fetchStats();
-    fetchFeaturedFlights();
+      fetchPopularFlights();
+
     fetchBoardFlights();
+    
 
     const interval = setInterval(() => {
       fetchStats();
       fetchBoardFlights();
-    }, 30000);
+    }, 60000);
 
     return () => clearInterval(interval);
   }, []);
@@ -265,12 +254,6 @@ return sorted.slice(0, limit);
                     <i className="icon-dashboard"></i>
                     Панель управления
                   </Link>
-                  {user.role === "admin" && (
-                    <Link to="/analytics" className="btn btn-outline btn-large">
-                      <i className="icon-analytics"></i>
-                      Аналитика
-                    </Link>
-                  )}
                 </>
               )}
             </div>

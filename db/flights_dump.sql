@@ -61,15 +61,11 @@ COPY public.users (id, username, password_hash, role, created_at) FROM stdin;
 -- Name: flights_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.flights_id_seq', 27, true);
-
-
---
--- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
---
-
-SELECT pg_catalog.setval('public.users_id_seq', 1, true);
-
+SELECT pg_catalog.setval(
+  'public.flights_id_seq',
+  (SELECT COALESCE(MAX(id),0) FROM public.flights),
+  true
+);
 
 --
 -- PostgreSQL database dump complete
