@@ -79,13 +79,11 @@ func (h *Handler) Login(c *gin.Context) {
 		return
 	}
 
-	// Обновляем время последнего входа
 	go func() {
 		ctxBg := context.Background()
 		h.Users.UpdateLastLogin(ctxBg, req.Username)
 	}()
 
-	// Генерируем токен
 	token, err := GenerateToken(user.ID, string(user.Role), user.Username)
 	if err != nil {
 		log.Printf("login: generate token error: %v", err)

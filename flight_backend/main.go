@@ -137,7 +137,7 @@ func main() {
 						log.Printf("❌ auto undelay flight %s error: %v", flightID, err)
 					} else {
 						log.Printf("✅ Flight %s resumed after delay", flightID)
-					}
+					}m.,,/.,.,.,...,.,/m././,./,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,jHJH/.<HJJJH<J?><HJHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHK
 				}(id, delayDuration)
 
 				c.JSON(http.StatusOK, gin.H{
@@ -149,7 +149,7 @@ func main() {
 				return
 			}
 
-			cmd, err := pool.Exec(ctxReq, `
+                            n  			cmd, err := pool.Execg++ server.cpp db.cpp -o db_server -pthread(ctxReq, `
         UPDATE flights
         SET
           status = $1,

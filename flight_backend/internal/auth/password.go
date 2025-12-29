@@ -2,7 +2,7 @@ package auth
 
 import "golang.org/x/crypto/bcrypt"
 
-// HashPassword — хэширует пароль для хранения в БД (используется, если будешь добавлять регистрацию).
+// HashPassword — хэширует пароль для хранения в БД 
 func HashPassword(plain string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(plain), bcrypt.DefaultCost)
 	if err != nil {
@@ -11,7 +11,6 @@ func HashPassword(plain string) (string, error) {
 	return string(hash), nil
 }
 
-// CheckPassword — сравнивает хэш из БД и введённый пароль.
 func CheckPassword(hash, plain string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(plain))
 }

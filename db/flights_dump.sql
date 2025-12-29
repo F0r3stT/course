@@ -4,8 +4,6 @@
 
 \restrict gBF4bRQAtU6YVzVP1rykxL03yPTcEc5gsdqpmIgoYAT3Y7bDfZ1OSSHAOreSHwg
 
--- Dumped from database version 16.11 (Ubuntu 16.11-0ubuntu0.24.04.1)
--- Dumped by pg_dump version 16.11 (Ubuntu 16.11-0ubuntu0.24.04.1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;

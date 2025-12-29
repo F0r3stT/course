@@ -31,7 +31,6 @@ body {
   background: var(--bg-primary);
 }
 .container {
-  /* растягиваем на всю ширину окна */
   width: 100%;
   max-width: 1920px;       /* можно убрать, если хочешь совсем без ограничения */
  margin: 0 auto;

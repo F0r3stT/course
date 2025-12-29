@@ -113,7 +113,7 @@ export default function FlightStatusSearch() {
 
       {result.length > 0 && (
         <div className="status-result">
-          {/* можно вывести в виде мини-таблицы или карточек, использовав те же стили статусов */}
+          {}
         </div>
       )}
     </section>

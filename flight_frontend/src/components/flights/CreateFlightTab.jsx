@@ -353,7 +353,7 @@ export default function CreateFlightTab({ onFlightCreated }) {
               <label className="form-label">
                 Авиакомпания *
                 <div className="input-with-icon">
-                  <span className="input-icon">🏢</span>
+                  <span className="input-icon"></span>
                   <select
                     value={formData.airlineCode}
                     onChange={(e) => handleAirlineChange(e.target.value)}
