@@ -1,0 +1,497 @@
+/* src/components/flights/FlightsTable.css */
+
+/* Общий контейнер табло */
+.modern-flight-board {
+  width: 100%;
+  margin-top: 24px;
+  padding: 20px 24px 24px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+  box-sizing: border-box;
+}
+
+/* Заголовок над таблицей */
+.board-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.board-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.board-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.board-date {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* Правый блок с датой */
+.board-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Фильтры над таблицей */
+.board-filters {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filter-label {
+  font-size: 11px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.filter-input {
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  font-size: 14px;
+  color: #111827;
+  outline: none;
+  min-width: 160px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.filter-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.18);
+  background: #f9fafb;
+}
+
+.search-box {
+  width: 100%;
+}
+
+.search-input {
+  width: 100%;
+  max-width: 420px;
+}
+
+.date-input {
+  min-width: 160px;
+}
+
+/* Контейнер таблицы */
+.flight-board-container {
+  margin-top: 20px;
+}
+
+/* Карточка с таблицей */
+.flights-table {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+}
+
+/* Таблица, максимально похожая на фото 2 */
+.flights-table-content {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+/* Заголовки колонок */
+.flights-table-content thead {
+  background: #1d4ed8;
+}
+
+.flights-table-content thead th {
+  padding: 12px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: left;
+  color: #f9fafb;
+  border-right: 1px solid rgba(15, 23, 42, 0.15);
+  white-space: nowrap;
+}
+
+.flights-table-content thead th:last-child {
+  border-right: none;
+}
+
+/* Строки рейсов */
+.flights-table-content tbody tr {
+  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
+  transition: background 0.18s ease, transform 0.1s ease,
+    box-shadow 0.18s ease;
+}
+
+.flights-table-content tbody tr:nth-child(even) {
+  background: #f9fafb;
+}
+
+.flight-row {
+  cursor: pointer;
+}
+
+.flight-row:hover {
+  background: #e0edff;
+}
+
+/* Ячейки */
+.flights-table-content td {
+  padding: 12px 14px;
+  font-size: 14px;
+  color: #111827;
+  vertical-align: middle;
+}
+
+/* Номер рейса */
+.flight-number-cell .flight-number {
+  font-weight: 700;
+  font-size: 15px;
+  color: #1d4ed8;
+}
+
+/* Авиакомпания */
+.airline-cell .airline-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.airline-code {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.airline-name {
+  font-size: 13px;
+  color: #4b5563;
+}
+
+/* Самолёт */
+.aircraft-cell {
+  font-size: 13px;
+  color: #374151;
+}
+
+/* Города / аэропорты */
+.city-cell .city-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.airport-code {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+  text-transform: uppercase;
+}
+
+.city-name {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* Время */
+.time-cell {
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Статусы */
+.status-cell {
+  text-align: right;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* По расписанию */
+.status-scheduled {
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* Посадка */
+.status-boarding {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+/* В полёте */
+.status-in-air {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+/* Приземлился */
+.status-landed {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+/* Задержан */
+.status-delayed {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* Отменён */
+.status-cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Пустое состояние */
+.empty-row {
+  text-align: center;
+  padding: 32px 16px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Загрузка */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+  gap: 16px;
+}
+
+.loading-state p {
+  margin: 0;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 3px solid #e5e7eb;
+  border-top-color: #2563eb;
+  animation: flights-spinner 0.9s linear infinite;
+}
+
+@keyframes flights-spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Адаптивность */
+@media (max-width: 960px) {
+  .modern-flight-board {
+    padding: 16px;
+  }
+
+  .flights-table-content thead th:nth-child(3),
+  .flights-table-content tbody td:nth-child(3) {
+    /* Скрыть колонку "Самолёт" на узких экранах */
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .board-header {
+    align-items: flex-start;
+  }
+
+  .status-cell {
+    text-align: left;
+  }
+
+  .flights-table-content thead th:nth-child(6),
+  .flights-table-content tbody td:nth-child(6),
+  .flights-table-content thead th:nth-child(7),
+  .flights-table-content tbody td:nth-child(7) {
+    /* Скрыть время вылета/прилёта на совсем маленьких экранах */
+    display: none;
+  }
+}
+.airline-cell .airline-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 120px;
+}
+
+.airline-code {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 600;
+  font-size: 12px;
+  width: fit-content;
+  min-width: 40px;
+}
+
+.airline-name {
+  font-size: 13px;
+  color: #4b5563;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.aircraft-cell {
+  font-size: 13px;
+  color: #374151;
+  min-width: 120px;
+}
+
+.city-cell .city-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 100px;
+}
+
+.airport-code {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+  text-transform: uppercase;
+}
+
+.city-name {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.board-status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  border-radius: 8px 8px 0 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-dot.online {
+  background: var(--success);
+  animation: pulseOnline 2s infinite;
+}
+
+.flight-count {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.flight-count strong {
+  color: var(--text-primary);
+}
+
+@keyframes pulseOnline {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Анимация строк таблицы */
+.flight-row {
+  transition: all 0.3s ease;
+  animation: fadeInRow 0.5s ease forwards;
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.flight-row:nth-child(1) { animation-delay: 0.1s; }
+.flight-row:nth-child(2) { animation-delay: 0.2s; }
+.flight-row:nth-child(3) { animation-delay: 0.3s; }
+.flight-row:nth-child(4) { animation-delay: 0.4s; }
+.flight-row:nth-child(5) { animation-delay: 0.5s; }
+/* и так далее */
+
+@keyframes fadeInRow {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.flight-row:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(59, 130, 246, 0.02));
+  transform: translateX(5px);
+}
+
+/* Стили для компактного режима */
+.modern-flight-board.compact {
+  font-size: 0.9rem;
+}
+
+.modern-flight-board.compact .flight-number {
+  font-size: 1rem;
+}
+
+.modern-flight-board.compact .status-badge {
+  padding: 3px 8px;
+  font-size: 0.75rem;
+}

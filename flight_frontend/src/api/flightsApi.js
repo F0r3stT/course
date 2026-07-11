@@ -1,235 +1,97 @@
-// src/api/flightsApi.js
 const API_BASE = "http://localhost:8080";
 
-// Читаем токен из localStorage — тот же ключ, который ставит AuthContext
-function getAuthHeaders() {
-  const token = localStorage.getItem("authToken");
-  if (!token) return {};
-  return {
-    Authorization: `Bearer ${token}`,
-  };
-}
-
-// Получить список рейсов (публично)
+// Получение всех рейсов
 export async function fetchFlights() {
-  const res = await fetch(`${API_BASE}/api/flights`);
+  const res = await fetch("/api/flights");
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Ошибка загрузки рейсов (HTTP ${res.status}): ${text}`);
+    throw new Error(`Ошибка загрузки рейсов: ${text}`);
   }
   return res.json();
 }
 
-// Создать новый рейс (нужна авторизация)
-export async function createFlight(form) {
-  const {
-    flightNumber,
-    airlineCode,
-    airlineName,
-    aircraftType,
-    departureAirport,
-    arrivalAirport,
-    departureTime,
-    arrivalTime,
-    status,
-  } = form;
-
-  if (
-    !flightNumber ||
-    !airlineCode ||
-    !departureAirport ||
-    !arrivalAirport ||
-    !departureTime ||
-    !arrivalTime ||
-    !status
-  ) {
-    throw new Error("Заполните все поля формы");
+// Получение всех авиакомпаний
+export async function fetchAirlines() {
+  const res = await fetch("/api/airlines");
+  if (!res.ok) {
+    // Если эндпоинта нет, возвращаем статические данные
+    return [
+      { code: 'SU', name: 'Аэрофлот', country: 'Россия', fleet_size: 250 },
+      { code: 'S7', name: 'S7 Airlines', country: 'Россия', fleet_size: 120 },
+      { code: 'U6', name: 'Уральские авиалинии', country: 'Россия', fleet_size: 50 },
+      { code: 'FV', name: 'Россия', country: 'Россия', fleet_size: 80 },
+      { code: 'TK', name: 'Turkish Airlines', country: 'Турция', fleet_size: 350 },
+      { code: 'LH', name: 'Lufthansa', country: 'Германия', fleet_size: 280 },
+      { code: 'AF', name: 'Air France', country: 'Франция', fleet_size: 210 }
+    ];
   }
+  return res.json();
+}
 
-  if (airlineCode.length !== 2) {
-    throw new Error("Аббревиатура авиакомпании должна быть из 2 символов");
+// Получение рейсов по авиакомпании
+export async function fetchAirlineFlights(airlineCode) {
+  const res = await fetch(`/api/airlines/${encodeURIComponent(airlineCode)}/flights`);
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Ошибка загрузки рейсов авиакомпании: ${text}`);
   }
+  return res.json();
+}
 
-  const depDate = new Date(departureTime);
-  const arrDate = new Date(arrivalTime);
-
-  if (isNaN(depDate.getTime()) || isNaN(arrDate.getTime())) {
-    throw new Error("Некорректный формат времени вылета/прилёта");
-  }
-
-  const payload = {
-    flight_number: flightNumber,
-    airline_code: airlineCode,
-    airline_name: airlineName || null,
-    aircraft_type: aircraftType || null,
-    departure_airport: departureAirport.toUpperCase(),
-    arrival_airport: arrivalAirport.toUpperCase(),
-    departure_time: depDate.toISOString(),
-    arrival_time: arrDate.toISOString(),
-    status,
-  };
-
-  const res = await fetch(`${API_BASE}/api/flights`, {
-    method: "POST",
+// Создание нового рейса
+export async function createFlight(flightData) {
+  const res = await fetch("/api/flights", {
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
-      ...getAuthHeaders(),
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${JSON.parse(localStorage.getItem("flightboard_auth") || "{}")?.token || ""}`,
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(flightData)
+  });
+  
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Ошибка создания рейса: ${text}`);
+  }
+  
+  return res.json();
+}
+// Удаление рейса (только admin)
+export async function deleteFlight(flightId) {
+  const res = await fetch(`/api/flights/${flightId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${
+        JSON.parse(localStorage.getItem("flightboard_auth") || "{}")?.token || ""
+      }`,
+    },
   });
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Ошибка создания рейса (HTTP ${res.status}): ${text}`);
+    throw new Error(`Ошибка удаления рейса: ${text}`);
   }
 
   return res.json();
 }
 
-// Обновить только статус рейса (PATCH /api/flights/:id/status)
-export async function updateFlightStatus(id, newStatus) {
-  if (!newStatus) {
-    throw new Error("Статус не может быть пустым");
-  }
 
-  const res = await fetch(`${API_BASE}/api/flights/${id}/status`, {
+// Обновление статуса рейса
+export async function updateFlightStatus(flightId, payload) {
+  const body = typeof payload === "string" ? { status: payload } : payload;
+
+  const res = await fetch(`/api/flights/${flightId}/status`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
-      ...getAuthHeaders(),
+      Authorization: `Bearer ${JSON.parse(localStorage.getItem("flightboard_auth") || "{}")?.token || ""}`,
     },
-    body: JSON.stringify({ status: newStatus }),
+    body: JSON.stringify(body),
   });
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Ошибка обновления статуса (HTTP ${res.status}): ${text}`);
+    throw new Error(`Ошибка обновления статуса: ${text}`);
   }
-
   return res.json();
-}
-
-// Удалить рейс (DELETE /api/flights/:id)
-export async function deleteFlight(id) {
-  const res = await fetch(`${API_BASE}/api/flights/${id}`, {
-    method: "DELETE",
-    headers: {
-      ...getAuthHeaders(),
-    },
-  });
-
-  if (res.status === 204) {
-    return;
-  }
-
-  if (res.status === 404) {
-    throw new Error("Рейс не найден");
-  }
-
-  const text = await res.text();
-  throw new Error(`Ошибка удаления рейса (HTTP ${res.status}): ${text}`);
-}
-
-// Обновить рейс целиком (PUT /api/flights/:id)
-export async function updateFlight(id, form) {
-  const {
-    flightNumber,
-    airlineCode,
-    departureAirport,
-    arrivalAirport,
-    departureTime,
-    arrivalTime,
-    status,
-  } = form;
-
-  if (
-    !flightNumber ||
-    !airlineCode ||
-    !departureAirport ||
-    !arrivalAirport ||
-    !departureTime ||
-    !arrivalTime ||
-    !status
-  ) {
-    throw new Error("Заполните все поля формы");
-  }
-
-  if (airlineCode.length !== 2) {
-    throw new Error("Аббревиатура авиакомпании должна быть из 2 символов");
-  }
-
-  const depDate = new Date(departureTime);
-  const arrDate = new Date(arrivalTime);
-
-  if (isNaN(depDate.getTime()) || isNaN(arrDate.getTime())) {
-    throw new Error("Некорректный формат времени вылета/прилёта");
-  }
-
-  const payload = {
-    flight_number: flightNumber,
-    departure_airport: departureAirport.toUpperCase(),
-    arrival_airport: arrivalAirport.toUpperCase(),
-    departure_time: depDate.toISOString(),
-    arrival_time: arrDate.toISOString(),
-    status,
-  };
-
-  const res = await fetch(`${API_BASE}/api/flights/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      ...getAuthHeaders(),
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Ошибка обновления рейса (HTTP ${res.status}): ${text}`);
-  }
-
-  return res.json();
-}
-export async function searchFlightStatus(
-  { mode, date, airportIata, flightNumber, fromAirport, toAirport },
-  token
-) {
-  // 1. Сначала забираем рейсы по дате + аэропорту + направлению
-  const flights = await fetchFlights(
-    {
-      date,
-      airportIata,
-      direction: mode, // "departures" / "arrivals"
-    },
-    token
-  );
-
-  // 2. Дополнительная фильтрация на фронте
-  return flights.filter((f) => {
-    // Номер рейса только цифры (как ты сделал в БД),
-    // на фронте он сейчас называется либо flightNumber, либо flight_number.
-    if (
-      flightNumber &&
-      String(f.flightNumber ?? f.flight_number) !== String(flightNumber)
-    ) {
-      return false;
-    }
-
-    // Фильтр по маршруту: откуда / куда
-    if (
-      fromAirport &&
-      (f.departureAirport ?? f.departure_airport) !== fromAirport
-    ) {
-      return false;
-    }
-
-    if (
-      toAirport &&
-      (f.arrivalAirport ?? f.arrival_airport) !== toAirport
-    ) {
-      return false;
-    }
-
-    return true;
-  });
 }

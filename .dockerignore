@@ -1,0 +1,12 @@
+# игнорируем мусор
+**/node_modules
+**/.git
+**/dist
+
+# но разрешаем то, что нужно для сборки
+!Dockerfile.web
+!docker-compose.yml
+!nginx/**
+!flight_frontend/**
+!flight_backend/**
+!db/**

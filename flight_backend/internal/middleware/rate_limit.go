@@ -14,7 +14,6 @@ type clientInfo struct {
 	ResetTime time.Time
 }
 
-// Простой лимитер: N попыток на IP в пределах окна TimeWindow
 type LoginRateLimiter struct {
 	mu         sync.Mutex
 	Limit      int

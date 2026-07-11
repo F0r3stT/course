@@ -1,0 +1,2321 @@
+/* src/components/dashboard/StatsTab.css */
+.stats-tab {
+  padding: 24px;
+  background: #f8fafc;
+  border-radius: 12px;
+  min-height: 100%;
+}
+
+.stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.stats-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.stats-controls {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.time-filters {
+  display: flex;
+  gap: 8px;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.time-filter-btn {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.time-filter-btn:hover {
+  color: #475569;
+}
+
+.time-filter-btn.active {
+  background: white;
+  color: #2563eb;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Основные метрики */
+.main-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.metric-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.metric-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.metric-card.primary {
+  border-left: 4px solid #2563eb;
+}
+
+.metric-card.success {
+  border-left: 4px solid #10b981;
+}
+
+.metric-card.warning {
+  border-left: 4px solid #f59e0b;
+}
+
+.metric-card.danger {
+  border-left: 4px solid #ef4444;
+}
+
+.metric-icon {
+  font-size: 2rem;
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+}
+
+.metric-card.primary .metric-icon {
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.1);
+}
+
+.metric-card.success .metric-icon {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.metric-card.warning .metric-icon {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.metric-card.danger .metric-icon {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.metric-content {
+  flex: 1;
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.metric-label {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.metric-change {
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.metric-card.primary .metric-change {
+  color: #2563eb;
+}
+
+.metric-card.success .metric-change {
+  color: #10b981;
+}
+
+.metric-card.warning .metric-change {
+  color: #f59e0b;
+}
+
+.metric-card.danger .metric-change {
+  color: #ef4444;
+}
+
+/* Сетка статистики */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 24px;
+}
+
+.stats-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.stat-section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-header h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.section-count {
+  background: #2563eb;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* Активные рейсы */
+.active-flights-container {
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.active-flight-card {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.flight-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.flight-number {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.flight-number .number {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.flight-number .airline-code {
+  background: #f1f5f9;
+  color: #475569;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.flight-aircraft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.aircraft-icon {
+  font-size: 1.2rem;
+}
+
+.aircraft-type {
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+/* Маршрут с анимацией */
+.flight-route {
+  margin-bottom: 16px;
+}
+
+.route-point {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.route-point .airport-code {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.route-point .time {
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.route-track {
+  position: relative;
+  height: 40px;
+  margin: 8px 0;
+}
+
+.track-line {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #e2e8f0;
+  transform: translateY(-50%);
+}
+
+plane-marker {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  transition: left 0.6s ease-out;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.plane-icon {
+  background: #0f172a;
+  color: #e5f2ff;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  border: 2px solid #38bdf8;
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+  animation: planeFloat 3s ease-in-out infinite;
+  position: relative;
+}
+
+.plane-icon::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  opacity: 0.7;
+}
+
+@keyframes planeFloat {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(0, -4px);
+  }
+}
+
+.plane-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.95);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.plane-marker:hover .plane-tooltip {
+  opacity: 1;
+}
+
+.track-duration {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 8px;
+  white-space: nowrap;
+}
+
+/* Прогресс рейса */
+.flight-progress {
+  margin-top: 12px;
+}
+
+.progress-bar {
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #3b82f6);
+  border-radius: 3px;
+  transition: width 1s ease-out;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.progress-text {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.progress-percent {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #2563eb;
+}
+
+/* Когда нет активных рейсов */
+.no-active-flights {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.no-flights-icon {
+  font-size: 3rem;
+  color: #cbd5e1;
+  margin-bottom: 16px;
+}
+
+.no-active-flights p {
+  color: #64748b;
+  margin: 0;
+}
+
+/* Рейтинг авиакомпаний */
+.airlines-ranking {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.airline-rank-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.airline-rank-item:last-child {
+  border-bottom: none;
+}
+
+.rank-position {
+  min-width: 32px;
+}
+
+.position-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: #f1f5f9;
+  border-radius: 6px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.airline-rank-item:nth-child(1) .position-number {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.airline-rank-item:nth-child(2) .position-number {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.airline-rank-item:nth-child(3) .position-number {
+  background: #fde68a;
+  color: #78350f;
+}
+
+.airline-info {
+  flex: 1;
+}
+
+.airline-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.airline-code {
+  background: #2563eb;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.airline-fullname {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.airline-stats {
+  display: flex;
+  gap: 12px;
+}
+
+.stat-item {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.airline-percentage {
+  font-weight: 600;
+  color: #2563eb;
+  min-width: 40px;
+  text-align: right;
+}
+
+/* Популярные маршруты */
+.popular-routes {
+  max-height: 300px;
+  overflow-y: auto;
+}
+.route-stats-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.route-stat {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: radial-gradient(circle at top left, rgba(148, 163, 184, 0.15), rgba(15, 23, 42, 0.9));
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.route-stat--from {
+  border-left: 3px solid #22c55e;
+}
+
+.route-stat--middle {
+  border-left: 3px solid #38bdf8;
+}
+
+.route-stat--to {
+  border-left: 3px solid #a855f7;
+}
+
+.route-stat-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+}
+
+.route-stat-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f9fafb;
+}
+
+.route-stat-hint {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.timeline-mini {
+  position: relative;
+  margin-left: 10px;
+  padding-left: 18px;
+}
+
+.timeline-mini::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  bottom: 2px;
+  width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(to bottom, #38bdf8, rgba(148, 163, 184, 0.2));
+}
+
+.timeline-mini .timeline-item {
+  position: relative;
+  padding: 8px 10px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  background: rgba(15, 23, 42, 0.8);
+}
+
+.timeline-mini .timeline-item.completed {
+  border: 1px solid rgba(34, 197, 94, 0.6);
+}
+
+.timeline-mini .timeline-item.active {
+  border: 1px solid rgba(56, 189, 248, 0.8);
+}
+
+.timeline-mini .timeline-item.upcoming {
+  opacity: 0.7;
+}
+
+.timeline-mini .timeline-dot {
+  position: absolute;
+  left: -3px;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #38bdf8;
+  border: 2px solid #0f172a;
+}
+
+.route-line-container {
+  flex: 1;
+  position: relative;
+  padding: 0 4px;     /* почти от края до края между аэропортами */
+}
+.route-visual {
+  display: flex;
+  align-items: center;           /* центр по вертикали */
+  justify-content: space-between;
+  gap: 30px;
+  position: relative;
+}
+
+.plane-marker {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);   /* центр по вертикали и горизонтали маркера */
+  transition: left 0.6s ease-out;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.route-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.route-item:last-child {
+  border-bottom: none;
+}
+
+.route-position .position-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: #f1f5f9;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.route-info {
+  flex: 1;
+}
+
+.route-airports {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.airport-code {
+  font-weight: 700;
+  color: #1e293b;
+}
+.airport-code-large {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #f9fafb;              /* код аэропорта тоже белый */
+  margin-bottom: 4px;
+  text-shadow: 0 0 10px rgba(15, 23, 42, 0.9); /* лучше читается на фоне */
+}
+
+.airport-city {
+  color: #f9fafb;              /* чисто белый текст */
+  font-size: 1rem;
+  margin-bottom: 12px;
+  opacity: 1;                  /* убираем полупрозрачность */
+  text-align: center;
+  max-width: 180px;
+}
+
+
+.airport-code.from {
+  color: #2563eb;
+}
+
+.airport-code.to {
+  color: #10b981;
+}
+
+.route-arrow {
+  color: #94a3b8;
+}
+
+.route-count .count-badge {
+  background: #f1f5f9;
+  color: #475569;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+}
+
+.route-actions .btn-view {
+  padding: 4px 12px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  color: #475569;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.route-actions .btn-view:hover {
+  background: #e2e8f0;
+}
+
+/* Распределение статусов */
+.status-distribution {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.status-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.status-dot.scheduled {
+  background: #10b981;
+}
+
+.status-dot.in_air {
+  background: #2563eb;
+}
+
+.status-dot.delayed {
+  background: #f59e0b;
+}
+
+.status-dot.boarding {
+  background: #8b5cf6;
+}
+
+.status-dot.landed {
+  background: #64748b;
+}
+
+.status-name {
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+.status-count {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-count .count {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.status-count .percentage {
+  min-width: 40px;
+  text-align: right;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+/* Быстрая статистика */
+.quick-stats h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 20px 0;
+}
+
+.quick-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.quick-stat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.quick-stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: #64748b;
+}
+
+.quick-stat-content {
+  flex: 1;
+}
+
+.quick-stat-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 2px;
+}
+
+.quick-stat-label {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+
+
+/* Адаптивность */
+@media (max-width: 1200px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .stats-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-metrics {
+    grid-template-columns: 1fr;
+  }
+  
+  .quick-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Стили для FlightDetailsModal */
+
+/* Белый текст для названий городов и аэропортов */
+.city-name-white,
+.white-text {
+  color: #ffffff !important;
+}
+
+/* Маршрут с растянутым самолетом */
+.route-visual {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin: 24px 0;
+}
+
+.route-line-container {
+  flex: 1;
+  position: relative;
+}
+
+.route-line {
+  position: relative;
+  height: 80px;
+  margin: 0 40px;
+}
+
+.line-background {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  border-radius: 2px;
+  transform: translateY(-50%);
+}
+
+/* Названия городов по краям линии */
+.city-label {
+  position: absolute;
+  top: 50%;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 8px;
+  transform: translateY(-50%);
+  white-space: nowrap;
+}
+
+.city-label-start {
+  left: 0;
+  transform: translate(-10px, -50%);
+}
+
+.city-label-end {
+  right: 0;
+  transform: translate(10px, -50%);
+}
+
+/* Самолет с улучшенной анимацией */
+.plane-marker {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  transition: left 0.6s ease-out;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.plane-icon {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: #ffffff;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  border: 3px solid #38bdf8;
+  box-shadow: 
+    0 0 25px rgba(56, 189, 248, 0.6),
+    0 0 50px rgba(56, 189, 248, 0.3),
+    inset 0 0 15px rgba(255, 255, 255, 0.2);
+  animation: planeFloat 3s ease-in-out infinite;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.plane-icon:hover {
+  transform: scale(1.1) translateY(-2px);
+  box-shadow: 
+    0 0 35px rgba(56, 189, 248, 0.8),
+    0 0 70px rgba(56, 189, 248, 0.4),
+    inset 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+.plane-icon::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: inherit;
+  border: 2px solid rgba(56, 189, 248, 0.5);
+  opacity: 0.8;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes planeFloat {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(0, -6px);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.4;
+  }
+}
+
+.duration-badge {
+  background: rgba(15, 23, 42, 0.95);
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  border: 1px solid rgba(56, 189, 248, 0.5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.plane-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.95);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.plane-marker:hover .plane-tooltip {
+  opacity: 1;
+}
+
+/* Подробная хронология */
+.timeline-detailed {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.timeline-item-detailed {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  transition: all 0.3s ease;
+}
+
+.timeline-item-detailed:hover {
+  background: rgba(15, 23, 42, 0.9);
+  border-color: rgba(56, 189, 248, 0.4);
+  transform: translateX(4px);
+}
+
+.timeline-item-detailed.completed {
+  border-left: 4px solid #22c55e;
+}
+
+.timeline-item-detailed.active {
+  border-left: 4px solid #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+  animation: pulseGlow 2s infinite;
+}
+
+.timeline-item-detailed.delayed {
+  border-left: 4px solid #f59e0b;
+}
+
+.timeline-item-detailed.upcoming {
+  border-left: 4px solid #64748b;
+  opacity: 0.7;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.1);
+  }
+}
+
+.timeline-icon {
+  font-size: 1.5rem;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30, 41, 59, 0.8);
+  flex-shrink: 0;
+}
+
+.timeline-content-detailed {
+  flex: 1;
+}
+
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.timeline-time-detailed {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.timeline-status {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.timeline-status.completed {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+}
+
+.timeline-status.active {
+  background: rgba(56, 189, 248, 0.2);
+  color: #38bdf8;
+}
+
+.timeline-status.delayed {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+
+.timeline-status.upcoming {
+  background: rgba(100, 116, 139, 0.2);
+  color: #94a3b8;
+}
+
+.timeline-event-detailed {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.timeline-description {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+/* Информация об аэропортах */
+.airport-info {
+  min-width: 150px;
+  text-align: center;
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.airport-code-large {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.airport-city {
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+  opacity: 0.9;
+}
+
+.time-display {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.time-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+}
+
+.time-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* Полоса статистики */
+.route-stats-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.route-stat {
+  padding: 16px;
+  border-radius: 12px;
+  background: radial-gradient(circle at top left, 
+    rgba(148, 163, 184, 0.15), 
+    rgba(15, 23, 42, 0.95));
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: all 0.3s ease;
+}
+
+.route-stat:hover {
+  transform: translateY(-2px);
+  border-color: rgba(56, 189, 248, 0.6);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.route-stat--from {
+  border-left: 4px solid #22c55e;
+}
+
+.route-stat--middle {
+  border-left: 4px solid #38bdf8;
+}
+
+.route-stat--to {
+  border-left: 4px solid #a855f7;
+}
+
+.route-stat-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+}
+
+.route-stat-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f9fafb;
+}
+
+.route-stat-hint {
+  font-size: 0.85rem;
+  color: #d1d5db;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .route-visual {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .airport-info {
+    width: 100%;
+  }
+  
+  .route-line {
+    height: 60px;
+    margin: 0 20px;
+  }
+  
+  .route-stats-strip {
+    grid-template-columns: 1fr;
+  }
+  
+  .plane-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.4rem;
+  }
+}
+/* Стили для FlightDetailsModal */
+
+/* Белый текст для названий городов и аэропортов */
+.city-name-white,
+.white-text {
+  color: #ffffff !important;
+}
+
+/* Упрощенный маршрут без самолета */
+.route-visual-simple {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 24px 0;
+  gap: 20px;
+}
+
+.route-line-simple {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.simple-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.simple-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  border-radius: 3px;
+  transition: width 0.6s ease-out;
+}
+
+.route-middle-info {
+  text-align: center;
+  padding: 8px 0;
+}
+
+.remaining-time {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.remaining-label {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.remaining-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* Информация об аэропортах */
+.airport-info {
+  min-width: 150px;
+  text-align: center;
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.airport-code-large {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.airport-city {
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+  opacity: 0.9;
+}
+
+.time-display {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.time-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+}
+
+.time-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* Упрощенная полоса статистики */
+.route-stats-strip-simple {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.route-stat-simple {
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: all 0.3s ease;
+}
+
+.route-stat-simple:hover {
+  background: rgba(15, 23, 42, 0.95);
+  border-color: rgba(56, 189, 248, 0.5);
+}
+
+.route-stat--from {
+  border-left: 3px solid #22c55e;
+}
+
+.route-stat--middle {
+  border-left: 3px solid #38bdf8;
+}
+
+.route-stat--to {
+  border-left: 3px solid #a855f7;
+}
+
+.route-stat-label-simple {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+}
+
+.route-stat-value-simple {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f9fafb;
+}
+
+.route-stat-hint-simple {
+  font-size: 0.85rem;
+  color: #d1d5db;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.timeline-detailed-simple {
+  max-height: 350px;
+  overflow-y: auto;
+  padding-right: 8px;
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.7) transparent;
+}
+
+/* скролл для Chrome / Edge / Safari */
+.timeline-detailed-simple::-webkit-scrollbar {
+  width: 6px;
+}
+
+.timeline-detailed-simple::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.timeline-detailed-simple::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.7);
+  border-radius: 3px;
+}
+
+.timeline-detailed-simple::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 1);
+}
+
+.timeline-item-simple {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.timeline-item-simple.completed {
+  border-left: 3px solid #22c55e;
+}
+
+.timeline-item-simple.active {
+  border-left: 3px solid #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+}
+
+.timeline-item-simple.delayed {
+  border-left: 3px solid #f59e0b;
+}
+
+.timeline-item-simple.upcoming {
+  border-left: 3px solid #64748b;
+  opacity: 0.7;
+}
+
+.timeline-icon-simple {
+  font-size: 1.2rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30, 41, 59, 0.8);
+  flex-shrink: 0;
+}
+
+.timeline-content-simple {
+  flex: 1;
+}
+
+.timeline-header-simple {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.timeline-time-simple {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.timeline-status-simple {
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.timeline-status-simple.completed {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+}
+
+.timeline-status-simple.active {
+  background: rgba(56, 189, 248, 0.2);
+  color: #38bdf8;
+}
+
+.timeline-status-simple.delayed {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+
+.timeline-status-simple.upcoming {
+  background: rgba(100, 116, 139, 0.2);
+  color: #94a3b8;
+}
+
+.timeline-event-simple {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.timeline-description-simple {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+/* Убираем секцию с кнопками */
+.actions-section {
+  display: none;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .route-visual-simple {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .airport-info {
+    width: 100%;
+  }
+  
+  .route-stats-strip-simple {
+    grid-template-columns: 1fr;
+  }
+  
+  .simple-progress-bar {
+    height: 4px;
+  }
+}
+/* Компактный статус и прогресс */
+.status-section-compact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 20px 0;
+  padding: 12px 16px;
+  background: rgba(15, 23, 42, 0.8);
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.progress-label-compact {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f9fafb;
+}
+
+/* Компактный маршрут */
+.route-visual-compact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 24px 0;
+  gap: 15px;
+}
+
+.airport-info-compact {
+  min-width: 130px;
+  text-align: center;
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.time-display-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.time-label-compact {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+  font-weight: 600;
+}
+
+.time-value-compact {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+/* Прогресс бар по центру */
+.route-line-compact {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.compact-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.compact-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  border-radius: 4px;
+  transition: width 0.6s ease-out;
+}
+
+.route-middle-info-compact {
+  text-align: center;
+  padding: 8px 0;
+}
+
+.remaining-time-compact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.remaining-label-compact {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.remaining-value-compact {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+/* Полоса статистики */
+.route-stats-compact {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.route-stat-compact {
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  text-align: center;
+}
+
+.route-stat-from-compact {
+  border-left: 3px solid #22c55e;
+}
+
+.route-stat-middle-compact {
+  border-left: 3px solid #38bdf8;
+}
+
+.route-stat-to-compact {
+  border-left: 3px solid #a855f7;
+}
+
+.route-stat-label-compact {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.route-stat-value-compact {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f9fafb;
+  margin-bottom: 4px;
+}
+
+.route-stat-hint-compact {
+  font-size: 0.85rem;
+  color: #d1d5db;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Компактная сетка деталей */
+.flight-info-grid-compact {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.info-card-compact {
+  background: rgba(15, 23, 42, 0.8);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.card-title-compact {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f9fafb;
+  margin: 0 0 16px 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+  padding-bottom: 8px;
+}
+
+/* Детали рейса */
+.details-grid-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-item-compact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.detail-item-compact:last-child {
+  border-bottom: none;
+}
+
+.detail-label-compact {
+  font-size: 0.9rem;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.detail-value-compact {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #f9fafb;
+  text-align: right;
+}
+
+.aircraft-display-compact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.aircraft-icon-compact {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+/* Хронология */
+.timeline-detailed-compact {
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.timeline-item-compact {
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.timeline-item-compact:last-child {
+  border-bottom: none;
+}
+
+.timeline-item-compact.active {
+  border-left: none;
+  background: transparent;
+}
+
+.timeline-content-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.timeline-header-compact {
+  display: flex;
+  align-items: center;
+}
+
+.timeline-time-compact {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.timeline-event-compact {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.timeline-description-compact {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .route-visual-compact {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .airport-info-compact {
+    width: 100%;
+  }
+  
+  .route-stats-compact {
+    grid-template-columns: 1fr;
+  }
+  
+  .flight-info-grid-compact {
+    grid-template-columns: 1fr;
+  }
+  
+  .compact-progress-bar {
+    height: 6px;
+  }
+}
+
+/* Компактный статус и прогресс */
+.status-section-compact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 20px 0;
+  padding: 12px 16px;
+  background: rgba(15, 23, 42, 0.8);
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.progress-label-compact {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f9fafb;
+}
+
+/* Компактный маршрут */
+.route-visual-compact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 24px 0;
+  gap: 15px;
+}
+
+.airport-info-compact {
+  min-width: 130px;
+  text-align: center;
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.time-display-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.time-label-compact {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+  font-weight: 600;
+}
+
+.time-value-compact {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+/* Прогресс бар по центру */
+.route-line-compact {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.compact-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.compact-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  border-radius: 4px;
+  transition: width 0.6s ease-out;
+}
+
+.route-middle-info-compact {
+  text-align: center;
+  padding: 8px 0;
+}
+
+.remaining-time-compact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.remaining-label-compact {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.remaining-value-compact {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+/* Полоса статистики */
+.route-stats-compact {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.route-stat-compact {
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  text-align: center;
+}
+
+.route-stat-from-compact {
+  border-left: 3px solid #22c55e;
+}
+
+.route-stat-middle-compact {
+  border-left: 3px solid #38bdf8;
+}
+
+.route-stat-to-compact {
+  border-left: 3px solid #a855f7;
+}
+
+.route-stat-label-compact {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.route-stat-value-compact {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f9fafb;
+  margin-bottom: 4px;
+}
+
+.route-stat-hint-compact {
+  font-size: 0.85rem;
+  color: #d1d5db;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Компактная сетка деталей */
+.flight-info-grid-compact {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.info-card-compact {
+  background: rgba(15, 23, 42, 0.8);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.card-title-compact {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f9fafb;
+  margin: 0 0 16px 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+  padding-bottom: 8px;
+}
+
+/* Детали рейса */
+.details-grid-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-item-compact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.detail-item-compact:last-child {
+  border-bottom: none;
+}
+
+.detail-label-compact {
+  font-size: 0.9rem;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.detail-value-compact {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #f9fafb;
+  text-align: right;
+}
+
+.aircraft-display-compact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.aircraft-icon-compact {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+/* Хронология */
+.timeline-detailed-compact {
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.timeline-item-compact {
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.timeline-item-compact:last-child {
+  border-bottom: none;
+}
+
+.timeline-item-compact.active {
+  border-left: none;
+  background: transparent;
+}
+
+.timeline-content-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.timeline-header-compact {
+  display: flex;
+  align-items: center;
+}
+
+.timeline-time-compact {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.timeline-event-compact {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.timeline-description-compact {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .route-visual-compact {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .airport-info-compact {
+    width: 100%;
+  }
+  
+  .route-stats-compact {
+    grid-template-columns: 1fr;
+  }
+  
+  .flight-info-grid-compact {
+    grid-template-columns: 1fr;
+  }
+  
+  .compact-progress-bar {
+    height: 6px;
+  }
+}
+
+/* Стили для полосы статуса внизу */
+.status-section-bottom {
+  margin: 30px 0 20px 0;
+  padding: 15px;
+  background: rgba(15, 23, 42, 0.9);
+  border-radius: 12px;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.status-section-bottom .status-badge-large {
+  font-size: 1.2rem;
+  padding: 8px 1px;
+}
+
+.status-section-bottom .progress-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f9fafb;
+}
+
+.status-section-bottom .progress-container {
+  display: none; /* Скрываем прогресс-бар, если он не нужен */
+}
+
+/* Стили для полноширинной кнопки статуса */
+.status-fullwidth {
+  width: 100%;
+  padding: 20px 24px;
+  border-radius: 12px;
+  cursor: default;
+  margin: 30px 0 20px 0;
+  transition: all 0.3s ease;
+  border: none;
+  text-align: center;
+}
+
+
+.status-fullwidth-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.status-fullwidth-text {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.status-flight-duration {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  padding: 6px 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Стили для времени полёта в деталях */
+.flight-duration-value {
+  font-weight: 700;
+  color: #38bdf8 !important;
+  font-size: 1.1rem;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+  .status-fullwidth {
+    padding: 16px 20px;
+  }
+  
+  .status-fullwidth-content {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .status-fullwidth-text {
+    font-size: 1.2rem;
+  }
+  
+  .status-flight-duration {
+    font-size: 1rem;
+  }
+}

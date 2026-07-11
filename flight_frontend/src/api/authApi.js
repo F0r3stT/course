@@ -2,7 +2,7 @@
 const API_BASE = "http://localhost:8080";
 
 export async function login(username, password) {
-  const res = await fetch(`${API_BASE}/api/auth/login`, {
+  const res = await fetch("/api/...", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -18,12 +18,11 @@ export async function login(username, password) {
         message = data.error;
       }
     } catch {
-      // игнорируем парсинг, оставляем дефолтный текст
     }
     throw new Error(message);
   }
 
-  const data = await res.json(); // { token, user }
+  const data = await res.json(); 
   return data;
 }
 

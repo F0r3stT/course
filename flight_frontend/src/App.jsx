@@ -1,85 +1,93 @@
-import React from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
+// src/App.jsx
+import { BrowserRouter, Routes, Route, Link, Navigate, useNavigate } from "react-router-dom";
 
-import FlightsPage from "./pages/FlightsPage.jsx";
+import HomePage from "./pages/HomePage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
+import AnalyticsPage from "./pages/AnalyticsPage.jsx";
+
 import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
 
-// базовые стили
-import "./styles/layout.css";
-import "./styles/controls.css";
-import "./styles/table.css";
-import "./styles/modal.css";
-import "./App.css";
+function PrivateRoute({ children, requiredRole }) {
+  const { user, initializing } = useAuth() || {};
 
-function PrivateRoute({ children }) {
-  const { user } = useAuth();
+  if (initializing) return null;
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/login" replace />;
+
+  if (requiredRole && user.role !== requiredRole) {
+    return <Navigate to="/" replace />;
   }
 
   return children;
 }
 
-function AppShell() {
-  const { user, logout } = useAuth();
+function AppContent() {
+  const { user, logout } = useAuth() || {};
+  const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();
+    navigate("/", { replace: true });
+    setTimeout(() => logout(), 0);
   };
 
   return (
-    <div className="app-root">
+    <div className="app full-height">
       <header className="app-header">
-        <div className="app-logo">FLY WINGS</div>
+        <div className="header-content">
+          <Link to="/" className="logo">
+            <span className="logo-icon">✈</span>
+            <span className="logo-text">FlightBoard</span>
+          </Link>
 
-        <div className="app-user-block">
-          {user ? (
-            <>
-              <span className="app-user-text">
-                Пользователь: {user.username} ({user.role})
-              </span>
-              <button className="btn btn-primary" onClick={handleLogout}>
-                Выйти
-              </button>
-            </>
-          ) : (
-            <span className="app-user-text">Режим посетителя</span>
-          )}
+          <nav className="nav">
+            {user && <Link to="/dashboard">Панель</Link>}
+          </nav>
+
+          <div>
+            {!user ? (
+              <Link to="/login" className="btn btn-login">Войти</Link>
+            ) : (
+              <div className="user-section">
+                <span className="user-name">{user.username}</span>
+                <button type="button" onClick={handleLogout} className="btn-logout">
+                  Выйти
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
       <main className="app-main">
         <Routes>
-          <Route
-            path="/login"
-            element={
-              user ? (
-                <Navigate to="/" replace />
-              ) : (
-                <LoginPage />
-              )
-            }
-          />
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
 
           <Route
-            path="/"
+            path="/dashboard"
             element={
               <PrivateRoute>
-                <FlightsPage />
+                <Dashboard />
               </PrivateRoute>
             }
           />
 
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route
+            path="/analytics"
+            element={
+              <PrivateRoute requiredRole="admin">
+                <AnalyticsPage />
+              </PrivateRoute>
+            }
+          />
         </Routes>
       </main>
+
+      <footer className="app-footer">
+        <p>FlightBoard © {new Date().getFullYear()}</p>
+        <p className="footer-subtitle">Система управления авиарейсами</p>
+      </footer>
     </div>
   );
 }
@@ -87,9 +95,9 @@ function AppShell() {
 export default function App() {
   return (
     <AuthProvider>
-      <Router>
-        <AppShell />
-      </Router>
+      <BrowserRouter>
+        <AppContent />
+      </BrowserRouter>
     </AuthProvider>
   );
 }

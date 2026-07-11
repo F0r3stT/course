@@ -1,254 +1,191 @@
-// src/pages/FlightsPage.jsx
-import React, { useEffect, useMemo, useState } from "react";
-import { fetchFlights } from "../api/flightsApi";
-import { useAuth } from "../context/AuthContext";
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 
-import FlightsTable from "../components/flights/FlightsTable";
-import FlightForm from "../components/flights/FlightForm";
-import FlightDetailsModal from "../components/flights/FlightDetailsModal";
-import FlightStatusSearch from "../components/flights/FlightStatusSearch";
+import AirportSelector from "../components/flights/AirportSelector.jsx";
+import FlightDetailsModal from "../components/flights/FlightDetailsModal.jsx";
+import { fetchFlights } from "../api/flightsApi.js";
 
-// Справочник аэропортов
-const AIRPORTS = [
-  { code: "SVO", city: "Москва", name: "Шереметьево" },
-  { code: "DME", city: "Москва", name: "Домодедово" },
-  { code: "VKO", city: "Москва", name: "Внуково" },
-  { code: "LHR", city: "Лондон", name: "Хитроу" },
-  { code: "DXB", city: "Дубай", name: "Dubai International" },
-];
+const STATUS_LABELS = {
+  scheduled: "По расписанию",
+  boarding: "Посадка",
+  in_air: "В полёте",
+  landed: "Приземлился",
+  delayed: "Задержан",
+  cancelled: "Отменён",
+};
 
-function getAirportByCode(code) {
-  return AIRPORTS.find((a) => a.code === code) || null;
+function formatTime(ts) {
+  if (!ts) return "—";
+  const d = new Date(ts);
+  return d.toLocaleTimeString("ru-RU", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 export default function FlightsPage() {
-  const { user } = useAuth();
-  const isAdmin = user && user.role === "admin";
-
-  const today = new Date().toISOString().slice(0, 10);
-
-  const [mode, setMode] = useState("departures"); // "departures" | "arrivals"
-  const [date, setDate] = useState(today);
-  const [airportCode, setAirportCode] = useState("SVO");
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [flights, setFlights] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [selectedFlight, setSelectedFlight] = useState(null);
-  const [editingFlight, setEditingFlight] = useState(null);
 
-  const currentAirport = getAirportByCode(airportCode);
-  const hasAirport = Boolean(airportCode);
-
-  const boardSubtitle = currentAirport
-    ? `${currentAirport.city} — ${currentAirport.name} (${currentAirport.code})`
-    : airportCode;
-
-  // загрузка всех рейсов (фильтруем на фронте)
-  async function loadFlights() {
-    try {
-      setIsLoading(true);
-      setErrorMessage("");
-      const data = await fetchFlights();
-      setFlights(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("loadFlights error", err);
-      setErrorMessage("Не удалось загрузить рейсы. Попробуйте позже.");
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  // при изменении режима, даты или аэропорта – просто перезагружаем данные
+  // При загрузке страницы читаем критерии из URL (?search=...)
   useEffect(() => {
-    if (!airportCode) {
-      setFlights([]);
-      return;
+    const raw = searchParams.get("search");
+    if (!raw) return;
+
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed && (parsed.departure || parsed.arrival)) {
+        handleSearch(parsed);
+      }
+    } catch (e) {
+      console.warn("[FlightsPage] invalid search param:", e);
     }
-    loadFlights();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, date, airportCode]);
+  }, []); // только при первом монтировании
 
-  // фильтрация по режиму / дате / аэропорту
-  const filteredFlights = useMemo(() => {
-    if (!flights.length) return [];
+  const handleSearch = async ({ departure, arrival }) => {
+    const dep = (departure || "").trim().toUpperCase();
+    const arr = (arrival || "").trim().toUpperCase();
 
-    return flights.filter((f) => {
-      const depTime = new Date(f.departure_time);
-      const arrTime = new Date(f.arrival_time);
-
-      const timeForMode = mode === "departures" ? depTime : arrTime;
-      const airportForMode =
-        mode === "departures" ? f.departure_airport : f.arrival_airport;
-
-      const flightDate = timeForMode.toISOString().slice(0, 10);
-
-      const sameDate = flightDate === date;
-      const sameAirport = airportForMode === airportCode;
-
-      return sameDate && sameAirport;
+    // сохраняем критерии в URL
+    setSearchParams({
+      search: JSON.stringify({ departure: dep, arrival: arr }),
     });
-  }, [flights, mode, airportCode, date]);
 
-  // обработчики
-  const handleRefreshClick = () => loadFlights();
+    setError("");
+    setLoading(true);
+    setFlights([]);
 
-  const handleRowClick = (flight) => setSelectedFlight(flight);
-  const handleCloseDetails = () => setSelectedFlight(null);
+    try {
+      const allFlights = await fetchFlights(); // запрос к /api/flights
+      const filtered = allFlights.filter((f) => {
+        const fDep = (f.departure_airport || "").toUpperCase();
+        const fArr = (f.arrival_airport || "").toUpperCase();
 
-  const handleEditClick = (flight) => setEditingFlight(flight);
-  const handleCreateNew = () => setEditingFlight(null);
+        return (!dep || fDep === dep) && (!arr || fArr === arr);
+      });
 
-  const handleFormSaved = () => {
-    setEditingFlight(null);
-    loadFlights();
+      setFlights(filtered);
+    } catch (err) {
+      console.error("[FlightsPage] search error:", err);
+      setError(err.message || "Ошибка поиска рейсов");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="board-layout">
-      {/* ЛЕВАЯ КОЛОНКА: табло + поиск статуса */}
-      <section className="board-main">
-        <header className="board-header">
-          <div>
-            <h1 className="board-title">Табло рейсов</h1>
-            <div className="board-subtitle">{boardSubtitle}</div>
-          </div>
+    <div className="container" style={{ padding: "2rem 0" }}>
+      <h1>Поиск рейсов</h1>
 
-          <div className="board-header-controls">
-            <div className="board-modes">
-              <button
-                type="button"
-                className={`board-mode-btn ${
-                  mode === "departures" ? "active" : ""
-                }`}
-                onClick={() => setMode("departures")}
-              >
-                ✈ Вылеты
-              </button>
-              <button
-                type="button"
-                className={`board-mode-btn ${
-                  mode === "arrivals" ? "active" : ""
-                }`}
-                onClick={() => setMode("arrivals")}
-              >
-                🛬 Прилёты
-              </button>
-            </div>
+      {/* Форма поиска */}
+      <div className="search-card" style={{ marginBottom: "2rem" }}>
+        <AirportSelector onSearch={handleSearch} />
+      </div>
 
-            <div className="board-filters">
-              <div className="field-group">
-                <label>Дата</label>
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                />
-              </div>
-
-              <div className="field-group">
-                <label>Аэропорт табло</label>
-                <select
-                  value={airportCode}
-                  onChange={(e) => setAirportCode(e.target.value)}
-                >
-                  {AIRPORTS.map((a) => (
-                    <option key={a.code} value={a.code}>
-                      {a.city}, {a.name} ({a.code})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={handleRefreshClick}
-                disabled={isLoading || !hasAirport}
-              >
-                Обновить
-              </button>
-            </div>
-          </div>
-        </header>
-
-        <div className="board-body">
-          {/* поиск статуса рейса по номеру / маршруту */}
-          <FlightStatusSearch />
-
-          {!hasAirport && (
-            <div className="board-empty">
-              Выберите аэропорт и дату, чтобы увидеть доступные рейсы.
-            </div>
-          )}
-
-          {hasAirport && isLoading && (
-            <div className="board-empty">Загрузка рейсов…</div>
-          )}
-
-          {hasAirport && !isLoading && errorMessage && (
-            <div className="board-error">{errorMessage}</div>
-          )}
-
-          {hasAirport &&
-            !isLoading &&
-            !errorMessage &&
-            filteredFlights.length === 0 && (
-              <div className="board-empty">
-                Рейсов по выбранным критериям нет.
-              </div>
-            )}
-
-          {hasAirport &&
-            !isLoading &&
-            !errorMessage &&
-            filteredFlights.length > 0 && (
-              <FlightsTable
-                flights={filteredFlights}
-                mode={mode}
-                isAdmin={!!user}
-                onSelectFlight={handleRowClick}
-                onEditFlight={handleEditClick}
-              />
-            )}
+      {/* Состояния загрузки/ошибки */}
+      {loading && (
+        <div className="loading-state">
+          <div className="spinner"></div>
+          <p>Загрузка рейсов...</p>
         </div>
-      </section>
-
-      {/* ПРАВАЯ КОЛОНКА: управление рейсами (только для admin) */}
-      {isAdmin && (
-        <aside className="board-right">
-          <section className="panel">
-            <div className="panel-header">
-              <h2 className="panel-title">Управление рейсами</h2>
-              <button
-                type="button"
-                className="link-button"
-                onClick={handleCreateNew}
-              >
-                Создать новый рейс
-              </button>
-            </div>
-            <p className="admin-subtitle">
-              Создание и редактирование рейсов доступно только
-              авторизованному персоналу.
-            </p>
-
-            <FlightForm
-              editingFlight={editingFlight}
-              selectedAirport={airportCode || "SVO"}
-              onSaved={handleFormSaved}
-              onCancel={() => setEditingFlight(null)}
-            />
-          </section>
-        </aside>
       )}
 
-      {/* Модальное окно с деталями рейса */}
+      {!loading && error && (
+        <div className="error-state">
+          <p style={{ color: "red" }}>{error}</p>
+        </div>
+      )}
+
+      {!loading && !error && flights.length === 0 && (
+        <div className="empty-state">
+          <p>Используйте форму выше для поиска рейсов.</p>
+          <p className="hint">Примеры: SVO → LED, DME → VKO, SVO → TOM</p>
+        </div>
+      )}
+
+      {/* Найденные рейсы */}
+      {!loading && !error && flights.length > 0 && (
+        <div className="flights-grid">
+          {flights.map((flight) => {
+            const duration = flight.flight_duration_minutes;
+            const airlineCode = (flight.airline_code || "").toUpperCase();
+            const airlineName = flight.airline_name || "";
+
+            return (
+              <div
+                key={flight.id}
+                className="flight-card search-result-card"
+                onClick={() => setSelectedFlight(flight)}
+                style={{ cursor: "pointer" }}
+              >
+                <div className="flight-header">
+                  <div>
+                    <div className="flight-number-large">
+                      Рейс {flight.flight_number}
+                    </div>
+                    <div className="flight-airline">
+                      {airlineName
+                        ? `${airlineName} (${airlineCode || "—"})`
+                        : airlineCode || "—"}
+                    </div>
+                  </div>
+                  <span
+                    className={`flight-status status-${flight.status || "scheduled"}`}
+                  >
+                    {STATUS_LABELS[flight.status] || flight.status || "—"}
+                  </span>
+                </div>
+
+                <div className="flight-route">
+                  <div className="route-segment">
+                    <span className="airport-code">
+                      {flight.departure_airport}
+                    </span>
+                    <span className="city">{flight.departure_city}</span>
+                    <span className="time">
+                      {formatTime(flight.departure_time)}
+                    </span>
+                  </div>
+
+                  <div className="route-line">
+                    <div className="line" />
+                    <div className="plane-icon">✈</div>
+                  </div>
+
+                  <div className="route-segment">
+                    <span className="airport-code">
+                      {flight.arrival_airport}
+                    </span>
+                    <span className="city">{flight.arrival_city}</span>
+                    <span className="time">
+                      {formatTime(flight.arrival_time)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flight-footer">
+                  <span className="duration">
+                    {duration
+                      ? `${Math.floor(duration / 60)} ч ${duration % 60} м`
+                      : "—"}
+                  </span>
+                  <span className="flight-id">ID: {flight.id}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Модальное окно с подробностями */}
       <FlightDetailsModal
         flight={selectedFlight}
-        onClose={handleCloseDetails}
-        airport={currentAirport}
+        onClose={() => setSelectedFlight(null)}
       />
     </div>
   );

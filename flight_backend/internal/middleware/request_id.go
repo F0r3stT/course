@@ -5,7 +5,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// RequestID добавляет уникальный X-Request-ID к каждому запросу.
 func RequestID() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.GetHeader("X-Request-ID")
@@ -13,7 +12,6 @@ func RequestID() gin.HandlerFunc {
 			id = uuid.NewString()
 		}
 
-		// кладём в контекст, чтобы использовать в логах
 		c.Set("request_id", id)
 		c.Writer.Header().Set("X-Request-ID", id)
 
